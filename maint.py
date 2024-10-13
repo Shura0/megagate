@@ -107,6 +107,10 @@ async def process_update(event):
             print("mentions:", _m.mentions)
             print("from:", _m.from_mid)
             print("mid:", message['mid'])
+            if message_store.get_message_by_id(_m.id):
+                print("message was already received before. Ignore")
+                continue
+
             if _m.in_reply_to_id:
                 print("reply to", _m.in_reply_to_id)
                 if '@' + message['mid'] in _m.mentions:
@@ -361,14 +365,14 @@ You cannot write new messages in this chat. To make new massage please send it t
                 mtype='chat',
                 mfrom='home@' + HOST)
             msg.send()
-    elif re.match(r'(?:>|»)', body, re.I | re.MULTILINE):
+    elif re.match(r'^(?:>|»)', body, re.I | re.MULTILINE):
         print("quotation")
         strings = body.split('\n')
         print(strings)
         original_post = ''
         while len(strings) > 0:
             line = strings.pop(0)
-            q = re.search(r'(?:>|») ?(.+)', line)
+            q = re.search(r'^(?:>|») ?(.+)', line)
             if q and q.group(1):
                 original_post += q.group(1) + '\n'
             else:
@@ -377,6 +381,8 @@ You cannot write new messages in this chat. To make new massage please send it t
         print('Original post was:')
         original_post = original_post.rstrip()
         print(original_post)
+        print('answer text is:')
+        print("\n".join(strings))
         toot = message_store.find_message(original_post, user['mid'])
         if not toot:
             raise mastodon_listener.NotFoundError()
@@ -558,14 +564,14 @@ def process_xmpp_thread(message):
         if len(body) > 2:  # Answer to post
             message_id = 0
             message_store = getMessageStore()
-            if re.match(r'(?:>|»)', body, re.I | re.MULTILINE):  # quotation
+            if re.match(r'^(?:>|»)', body, re.I | re.MULTILINE):  # quotation
                 print("quotation in thread")
                 strings = body.split('\n')
                 print(strings)
                 original_post = ''
                 while len(strings) > 0:
                     line = strings.pop(0)
-                    q = re.search(r'(?:>|») ?(.+)', line)
+                    q = re.search(r'^(?:>|») ?(.+)', line)
                     if q and q.group(1):
                         original_post += q.group(1) + '\n'
                     else:
