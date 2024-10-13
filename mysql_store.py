@@ -153,12 +153,12 @@ class MessageStore:
         cursor.close()
         return res
 
-    def get_message_by_id(self, id: str):
-        sql = "SELECT * FROM Messages WHERE id = %s LIMIT 1"
+    def get_message_by_id(self, id: str, feed='home') -> dict:
+        sql = "SELECT * FROM Messages WHERE id = %s AND feed = %s LIMIT 1"
         cursor = self.db.cursor(dictionary=True, buffered=True)
-        cursor.execute(sql, [str(id)])
+        cursor.execute(sql, (str(id), str(feed)))
         a = cursor.fetchone()
-        print("get_message_by_id")
+        print("get_message_by_id in feed " + feed)
         print(a)
         print("==")
         cursor.close()

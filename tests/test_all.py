@@ -476,7 +476,7 @@ https://zenrus.ru/'''
         main.mastodon_listeners = {
             'shura@mastodon.social':m
         }
-        main.process_xmpp_thread(message)
+        main.process_xmpp_message_thread(message)
         for t in threading.enumerate():
             try:
                 t.join()
@@ -516,7 +516,7 @@ https://zenrus.ru/'''
         main.mastodon_listeners = {
             'shura@mastodon.social':m
         }
-        main.process_xmpp_thread(message)
+        main.process_xmpp_message_thread(message)
         new_message=main.message_store.get_message_by_id('107961941922050128')
         print(new_message)
         print(new_message['mentions'])
@@ -555,7 +555,7 @@ https://zenrus.ru/'''
         }
         print("MESSAGE")
         print(message)
-        main.process_xmpp_thread(message)
+        main.process_xmpp_message_thread(message)
         print("mentions")
         for t in threading.enumerate():
             try:

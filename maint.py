@@ -128,6 +128,7 @@ async def process_update(event):
                                             _m.text,
                                             mfrom='home@' + HOST,
                                             mtype='chat')
+                    msg['id'] = str(_m.id)
                     msg.send()
                     message_store.add_message(
                         _m.text,
@@ -204,6 +205,7 @@ async def process_notification(event):
                                 _m.text,
                                 mtype='chat',
                                 mfrom=str(_m.id) + "@" + HOST)
+                            msg['id'] = str(_m.id)
                             msg.send()
                     except Exception as e:
                         print("Error: " + str(e))
@@ -230,6 +232,7 @@ async def process_notification(event):
                         _m.text,
                         mtype='chat',
                         mfrom='home@' + HOST)
+                    msg['id'] = str(_m.id)
                     msg.send()
         except Empty:
             await asyncio.sleep(.2)
@@ -240,7 +243,7 @@ async def process_notification(event):
     print(asyncio.current_task().get_name(), 'is closed')
 
 
-def process_xmpp_home(message):
+def process_xmpp_message_home(message):
     print("process_xmpp_home")
     user = users_db.get_user_by_jid(message['jid'])
     if not user:
@@ -345,7 +348,7 @@ You cannot write new messages in this chat. To make new massage please send it t
         t = threading.Thread(
             target=mastodon_reblog_fav_status_process,
             args=('f', message['jid'], mes_x),
-            name='mastodon_reblog_' + message['jid'])
+            name='mastodon_fav_' + message['jid'])
         t.start()
         # MTHREADS.append(t)
     elif re.match(r'w(\d{1,2})?$', body, re.I | re.MULTILINE):
@@ -428,7 +431,7 @@ You cannot write new messages in this chat. To make new massage please send it t
         msg.send()
 
 
-def process_xmpp_new(message):
+def process_xmpp_message_new(message):
     user = users_db.get_user_by_jid(message['jid'])
     if not user:
         return
@@ -445,7 +448,7 @@ def process_xmpp_new(message):
     # MTHREADS.append(t)
 
 
-def process_xmpp_thread(message):
+def process_xmpp_message_thread(message):
     user = users_db.get_user_by_jid(message['jid'])
     if not user:
         return
@@ -946,6 +949,69 @@ def process_xmpp_config(message):
                 msg.send()
 
 
+def process_xmpp_reaction_home(message):
+    if not (message['reaction'] and message['id']):
+        print("process_xmpp_reaction_home")
+        print(message)
+        return
+
+    user = users_db.get_user_by_jid(message['jid'])
+    if not user:
+        print("user not found")
+        return
+    mastodon = mastodon_listeners.get(user['mid'])
+    if not mastodon:
+        print("not mastodon")
+        msg = XMPP.make_message(
+            message['jid'],
+            'Seems like you have not registered or internal exception accured',
+            mfrom='home@' + HOST,
+            mtype='chat')
+        msg.send()
+        return
+
+    toot = message_store.get_message_by_id(message['id'])
+    if toot:
+        if message['reaction'] == 'reblog':
+            print("want reblog " + str(message['jid']) + ' ' + str(message['id']))
+            threading.Thread(
+                target=mastodon_reblog_fav_status_process,
+                args=('r', message['jid'], message['id']),
+                name='mastodon_reblog_' + message['jid']).start()
+        elif message['reaction'] == 'like':
+            threading.Thread(
+                target=mastodon_reblog_fav_status_process,
+                args=('f', message['jid'], message['id']),
+                name='mastodon_fav_' + message['jid']).start()
+
+
+def process_xmpp_reaction_thread(message):
+    if not (message['reaction'] and message['id']):
+        return
+    user = users_db.get_user_by_jid(message['jid'])
+    if not user:
+        return
+    mastodon = mastodon_listeners.get(user['mid'])
+    if not mastodon:
+        return
+    mid = re.findall(r'(\d+)@', message['to'])[0]
+    print(mid)
+
+    toot = message_store.get_message_by_id(message['id'], mid)
+
+    if toot:
+        if message['reaction'] == 'reblog':
+            threading.Thread(
+                target=mastodon_reblog_fav_status_process,
+                args=('r', message['jid'], message['id']),
+                name='mastodon_reblog_' + message['jid']).start()
+        elif message['reaction'] == 'like':
+            threading.Thread(
+                target=mastodon_reblog_fav_status_process,
+                args=('f', message['jid'], message['id']),
+                name='mastodon_fav_' + message['jid']).start()
+
+
 async def process_xmpp(event):
     asyncio.current_task().set_name('process_xmpp')
     print("process xmpp")
@@ -954,15 +1020,14 @@ async def process_xmpp(event):
             # print("px")
             message = xmpp_queue.get(block=False)
             print("xmpp queue is not empty")
-            body = message['body']
-            if body:
+            if message.get('body'):  # Message
                 print('got xmpp message from ' + message['jid'])
                 if message['to'].startswith('home@'):
-                    process_xmpp_home(message)
+                    process_xmpp_message_home(message)
                 elif message['to'].startswith('new@'):
-                    process_xmpp_new(message)
+                    process_xmpp_message_new(message)
                 elif re.search(r'\d+@', message['to']):  # reply to thread
-                    process_xmpp_thread(message)
+                    process_xmpp_message_thread(message)
                 elif message['to'].startswith('config@'):
                     process_xmpp_config(message)
                 elif re.search(r'.+|new@', message['to']):  # new post to group
@@ -973,7 +1038,14 @@ async def process_xmpp(event):
                         _group = '@' + _group
                     print("writing in group " + _group)
                     message['body'] = _group + ' ' + message['body']
-                    process_xmpp_new(message)
+                    process_xmpp_message_new(message)
+            elif message.get('reaction'):  # Reaction
+                print("Got reaction in queue")
+                if message['to'].startswith('home@'):
+                    process_xmpp_reaction_home(message)
+                elif re.search(r'\d+@', message['to']):  # reply to thread
+                    process_xmpp_reaction_thread(message)
+
             else:  # It's a command
                 command = message.get('command')
                 user = users_db.get_user_by_jid(message['jid'])
@@ -1238,6 +1310,7 @@ def _mastodon_process_reply_process(mid, mes_x, message, tp='update'):
                                         _m.text,
                                         mfrom=str(first_message.id) + '@' + HOST,
                                         mtype='chat')
+                msg['id'] = str(_m.id)
                 msg.send()
             message_store.add_message(
                 _m.text,
@@ -1262,6 +1335,7 @@ def _mastodon_process_reply_process(mid, mes_x, message, tp='update'):
                         mfrom='home@' + HOST,
                         mtype='chat'
                     )
+                    msg['id'] = str(_m.id)
                     msg.send()
                     message_store.add_message(
                         _m.text,
@@ -1284,6 +1358,7 @@ def _mastodon_process_reply_process(mid, mes_x, message, tp='update'):
                                         _m.text,
                                         mfrom=str(thread_id) + '@' + HOST,
                                         mtype='chat')
+                msg['id'] = str(_m.id)
                 msg.send()
             message_store.add_message(
                 _m.text,
@@ -1305,6 +1380,7 @@ def _mastodon_process_reply_process(mid, mes_x, message, tp='update'):
                                             _m.text,
                                             mfrom='home@' + HOST,
                                             mtype='chat')
+                    msg['id'] = str(_m.id)
                     msg.send()
                     message_store.add_message(
                         _m.text,
@@ -1371,6 +1447,8 @@ def mastodon_get_thread_process(jid, mes_x):
             _m.text,
             mtype='chat',
             mfrom=str(thread_messages[0].id) + '@' + HOST)
+        msg['id'] = str(_m.id)
+        print(msg)
         msg.send()
 
 
@@ -1500,6 +1578,7 @@ if __name__ == '__main__':
     XMPP.add_event_handler('disconnected', disconnected)
 
     XMPP.register_plugin('xep_0030')  # Service Discovery
+    XMPP.register_plugin('xep_0444')  # Message reactions
     XMPP.register_plugin('xep_0065', {
         'auto_accept': True
     })  # SOCKS5 Bytestreams

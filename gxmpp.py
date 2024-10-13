@@ -8,6 +8,7 @@ class Component(ComponentXMPP):
         ComponentXMPP.__init__(self, jid, secret, server, port)
 
         self.add_event_handler("message", self.message)
+        self.add_event_handler("reactions", self.reactions)
         self.index = 0
         self.users = []
         self.jid = jid
@@ -31,6 +32,27 @@ class Component(ComponentXMPP):
         jid = re.sub(r'/.+$', '', str(msg['from']))
         to = re.sub(r'/.+$', '', str(msg['to']))
         self.queue.put({'jid': jid, 'body': body, 'to': to})
+
+    def reactions(self, msg):
+        reactions = msg['reactions']
+        jid = re.sub(r'/.+$', '', str(msg['from']))
+        to = re.sub(r'/.+$', '', str(msg['to']))
+        print("Got reaction on " + reactions['id'] + " from " + jid)
+        for i in reactions:
+            if i.get_value() == '👍':
+                print('reblog')
+                self.queue.put({
+                    'jid': jid,
+                    'reaction': 'reblog',
+                    'to': to,
+                    'id': reactions['id']})
+            elif i.get_value() == '❤':
+                print('Like')
+                self.queue.put({
+                    'jid': jid,
+                    'reaction': 'like',
+                    'to': to,
+                    'id': reactions['id']})
 
     def send_online(self, jid):
         self.send_presence(pfrom=self.jid,
