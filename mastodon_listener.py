@@ -105,7 +105,7 @@ class MastodonListener(StreamListener):
             if '@' not in acct:
                 acct = acct + '@' + self.server_name
             m.from_mid = '@' + acct
-            to_out = f"@{1} reblog status of @{2}:\n".format(
+            to_out = "@{} reblog status of @{}:\n".format(
                 data['account']['acct'],
                 data['reblog']['account']['acct'])
         else:
@@ -167,7 +167,7 @@ class MastodonListener(StreamListener):
         if '@' not in m.from_mid:
             m.from_mid = '@' + m.from_mid + '@' + self.server_name
         if data['type'] == 'follow':
-            to_out = f"@{1} follows you\n{2}".format(
+            to_out = "@{} follows you\n{}".format(
                 data['account']['acct'],
                 data['account']['url'])
         elif data['type'] == 'reblog':
@@ -182,7 +182,7 @@ class MastodonListener(StreamListener):
             m.id = data['status']['id']
             m.url = data['status']['url']
             m.visibility = data['status']['visibility']
-            to_out = f"@{1} reblog your status:\n{2}".format(
+            to_out = "@{} reblog your status:\n{}".format(
                 data['account']['username'],
                 text)
             media_list = data['status'].get('media_attachments')
@@ -198,7 +198,7 @@ class MastodonListener(StreamListener):
             m.visibility = data['status']['visibility']
             m.date = data['status'].get('created_at')
             text = parser.get_result()
-            to_out = f"@{1} favourited your status:\n{2}".format(
+            to_out = "@{} favourited your status:\n{}".format(
                 data['account']['acct'],
                 text)
             media_list = data['status'].get('media_attachments')
@@ -224,14 +224,14 @@ class MastodonListener(StreamListener):
                     a['acct'] += '@' + self.server_name
                 m.add_mentions('@' + a['acct'])
             text = parser.get_result()
-            to_out = f"@{1}:{2}".format(
+            to_out = "@{}:{}".format(
                 data['account']['username'],
                 text)
             media_list = data['status'].get('media_attachments')
             for u in media_list:
                 to_out += "\n" + u['url']
         elif data['type'] == 'follow_request':
-            to_out = f"@{1} wants follow you:\n{2}".format(
+            to_out = "@{} wants follow you:\n{}".format(
                 data['account']['acct'],
                 data['account']['url'])
 
