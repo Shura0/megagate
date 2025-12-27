@@ -1,5 +1,6 @@
-from slixmpp.componentxmpp import ComponentXMPP
 import re
+from slixmpp.componentxmpp import ComponentXMPP
+import text_constants
 
 
 class Component(ComponentXMPP):
@@ -10,6 +11,7 @@ class Component(ComponentXMPP):
         self.add_event_handler("message", self.message)
         self.add_event_handler("reactions", self.reactions)
         self.index = 0
+        self.queue = None
         self.users = []
         self.jid = jid
         self.my_contacts = [
@@ -46,11 +48,18 @@ class Component(ComponentXMPP):
                     'reaction': 'reblog',
                     'to': to,
                     'id': reactions['id']})
-            elif i.get_value() == '❤':
+            elif i.get_value() == '❤' or i.get_value() == '★':
                 print('Like')
                 self.queue.put({
                     'jid': jid,
                     'reaction': 'like',
+                    'to': to,
+                    'id': reactions['id']})
+            elif i.get_value() == '🗨' or i.get_value() == '💬':
+                print('Thread')
+                self.queue.put({
+                    'jid': jid,
+                    'reaction': 'thread',
                     'to': to,
                     'id': reactions['id']})
 
@@ -86,6 +95,7 @@ class Component(ComponentXMPP):
             self.send_presence(pfrom=presence['to'],
                                pto=presence['from'],
                                ppriority=1)
+
         elif presence['type'] == 'subscribe':
             self.send_presence(pto=presence.get('from'),
                                pfrom=presence['to'],
@@ -93,13 +103,11 @@ class Component(ComponentXMPP):
             self.send_presence(pfrom=presence['to'],
                                pto=presence.get('from'),
                                ppriority=1)
+
             if to == self.jid:  # Subscription to service
                 self.send_message(
                     presence.get('from'),
-                    "Please add this contact to your roster. The contact is for managing your mastodon account\n" +
-                    "Type 'help' for help\n" +
-                    "Please enter your mastodon server name with command 'server'. For example:\n" +
-                    'server mastodon.social',
+                    text_constants.SUBSCRIPTION_MESSAGE,
                     mfrom="config@" + self.jid,
                     mtype='chat')
                 self.send_presence(pto=presence.get('from'),
@@ -113,10 +121,12 @@ class Component(ComponentXMPP):
             self.send_presence(pfrom=presence['to'],
                                pto=presence.get('from'),
                                ppriority=1)
+
         elif presence['type'] == 'unsubscribe' or presence['type'] == 'unsubscribed':
             print("to:", to)
             print("from:", jid)
             print("self.jid:", self.jid)
+
             if to == self.jid:  # unsubscribed from service
                 self.queue.put({'jid': jid,
                                 'body': None,
@@ -130,6 +140,7 @@ class Component(ComponentXMPP):
                     self.send_presence(pto=presence.get('from'),
                                        pfrom=j + '@' + self.jid,
                                        ptype='unsubscribed')
+
         elif presence['type'] == 'error':
             print(presence)
 

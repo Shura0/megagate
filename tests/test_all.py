@@ -610,16 +610,14 @@ https://zenrus.ru/'''
 
 
 if __name__ == '__main__':
-    message_store = MysqlStore(
-            MYSQL_HOST, MYSQL_PORT, MYSQL_DATABASE, MYSQL_USERNAME, MYSQL_PASSWORD)
+    message_store = MysqlStore(MYSQL_HOST, MYSQL_PORT, MYSQL_DATABASE, MYSQL_USERNAME, MYSQL_PASSWORD)
     message_store.drop_database()
-    message_store = MysqlStore(
-            MYSQL_HOST, MYSQL_PORT, MYSQL_DATABASE, MYSQL_USERNAME, MYSQL_PASSWORD)
+    message_store = MysqlStore(MYSQL_HOST, MYSQL_PORT, MYSQL_DATABASE, MYSQL_USERNAME, MYSQL_PASSWORD)
     with open("mysql_dataset.csv") as csvfile:
         reader = csv.reader(csvfile)
         for line in reader:
-            line[6]=datetime.fromisoformat(line[6])
-            line[2]=line[2].split(' ')
+            line[6] = datetime.fromisoformat(line[6])
+            line[2] = line[2].split(' ')
             author = line[2][0]
             line[2] = set(line[2])
             message_store.add_message(

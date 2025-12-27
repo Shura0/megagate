@@ -1,20 +1,17 @@
 #!/bin/env python3
 
+from datetime import datetime
+import re
+from time import time
 
-from mastodon import Mastodon, StreamListener,\
-    MastodonNotFoundError, MastodonAPIError, MastodonUnauthorizedError,\
+from mastodon import Mastodon, StreamListener, \
+    MastodonNotFoundError, MastodonAPIError, MastodonUnauthorizedError, \
     MastodonNetworkError, MastodonIllegalArgumentError, MastodonVersionError
 
 from requests import exceptions
 
-# import time
-import re
-# import mq
-# import numpy as np
 import html_parser
 import config
-from time import time
-from datetime import datetime
 
 LOG_FILE = config.LOG_FILE
 TIMEOUT = 30
@@ -56,10 +53,10 @@ class EncodedMessage:
 
     def add_mentions(self, *argv):
         for i in argv:
-            if type(i) == list:
+            if isinstance(i, list):
                 for o in i:
                     self.mentions.add(o)
-            elif type(i) == set:
+            elif isinstance(i, set):
                 self.mentions.update(i)
             else:
                 self.mentions.add(i)
@@ -79,18 +76,21 @@ class EncodedMessage:
 
 
 class MastodonListener(StreamListener):
-    def __init__(self, mid):
+    def __init__(self, mid, jids, on_update, on_notification):
         StreamListener.__init__(self)
         self.mid = mid
         self.lastbeat = int(time())
         self.got_heartbeat = 0
         self.heartbeat_interval = TIMEOUT
+        self.jids = jids
+        self.on_update = on_update
+        self.on_notification = on_notification
         # self.update_q = update
         # self.message_q = message
         self.server_name = re.findall(r'([^@]+)$', self.mid)[0]
         print('new listener for ' + mid)
 
-    def setMid(self, mid):
+    def set_mid(self, mid):
         self.mid = mid
 
     def process_update(self, status):
@@ -99,18 +99,13 @@ class MastodonListener(StreamListener):
         m.id = data['id']
         log("Update")
         log(str(status))
-        # m['mentions'] = set()
         if data.get('reblog'):
             cont = data['reblog']
-            # acct = data['account']['acct']
-            # if not '@' in acct:
-            # acct = acct+'@'+self.server_name
             acct = cont['account']['acct']
             if '@' not in acct:
                 acct = acct + '@' + self.server_name
             m.from_mid = '@' + acct
-            # m.add_mentions("@" + acct)
-            to_out = "@{} reblog status of @{}:\n".format(
+            to_out = f"@{1} reblog status of @{2}:\n".format(
                 data['account']['acct'],
                 data['reblog']['account']['acct'])
         else:
@@ -119,7 +114,6 @@ class MastodonListener(StreamListener):
             if '@' not in acct:
                 acct = acct + '@' + self.server_name
             m.from_mid = '@' + acct
-            # m.add_mentions("@" + acct)
             to_out = ''
         date = status.get('created_at')
         m.date = date
@@ -131,13 +125,11 @@ class MastodonListener(StreamListener):
         cont['content'] = re.sub(r'\n', '', cont['content'])
         parser.feed(cont['content'])
         parser.close()
-        text = parser.get_result()
-        to_out += text
+        to_out += parser.get_result()
         if cont.get('spoiler_text'):
             parser.feed(cont['spoiler_text'])
             parser.close()
-            text = parser.get_result()
-            to_out = "Spoiler text: " + text + "\n" + to_out
+            to_out = "Spoiler text: " + parser.get_result() + "\n" + to_out
         media_list = cont.get('media_attachments')
         for u in media_list:
             to_out += "\n" + u['url']
@@ -149,13 +141,13 @@ class MastodonListener(StreamListener):
         m.url = cont['url']
         m.visibility = cont['visibility']
         m.id = cont['id']
+
         if data.get('reblog'):
             m.text = to_out
         else:
             m.text = "@" + cont['account']['acct'] + ": " + to_out
             m.in_reply_to_id = cont['in_reply_to_id']
-        # return m
-        # self.update_q.put({'mid': self.mid, 'status': m})
+
         s = re.sub(r"\s+\n", "\n", m.text).rstrip()
         m.text = s
         self.lastbeat = int(time())
@@ -175,7 +167,7 @@ class MastodonListener(StreamListener):
         if '@' not in m.from_mid:
             m.from_mid = '@' + m.from_mid + '@' + self.server_name
         if data['type'] == 'follow':
-            to_out = "@{} follows you\n{}".format(
+            to_out = f"@{1} follows you\n{2}".format(
                 data['account']['acct'],
                 data['account']['url'])
         elif data['type'] == 'reblog':
@@ -186,17 +178,11 @@ class MastodonListener(StreamListener):
             parser.close()
             text = parser.get_result()
             date = data['status'].get('created_at')
-            # date = date.replace('Z','')
-            # try:
-            #     date = datetime.fromisoformat(date)
-            # except:
-            #     print("Cannot understand date", date)
-            #     date = datetime.now()
             m.date = date
             m.id = data['status']['id']
             m.url = data['status']['url']
             m.visibility = data['status']['visibility']
-            to_out = "@{} reblog your status:\n{}".format(
+            to_out = f"@{1} reblog your status:\n{2}".format(
                 data['account']['username'],
                 text)
             media_list = data['status'].get('media_attachments')
@@ -212,7 +198,7 @@ class MastodonListener(StreamListener):
             m.visibility = data['status']['visibility']
             m.date = data['status'].get('created_at')
             text = parser.get_result()
-            to_out = "@{} favourited your status:\n{}".format(
+            to_out = f"@{1} favourited your status:\n{2}".format(
                 data['account']['acct'],
                 text)
             media_list = data['status'].get('media_attachments')
@@ -238,14 +224,14 @@ class MastodonListener(StreamListener):
                     a['acct'] += '@' + self.server_name
                 m.add_mentions('@' + a['acct'])
             text = parser.get_result()
-            to_out = "@{}:{}".format(
+            to_out = f"@{1}:{2}".format(
                 data['account']['username'],
                 text)
             media_list = data['status'].get('media_attachments')
             for u in media_list:
                 to_out += "\n" + u['url']
         elif data['type'] == 'follow_request':
-            to_out = "@{} wants follow you:\n{}".format(
+            to_out = f"@{1} wants follow you:\n{2}".format(
                 data['account']['acct'],
                 data['account']['url'])
 
@@ -258,21 +244,16 @@ class MastodonListener(StreamListener):
         print(error)
 
     def handle_heartbeat(self):
-        print("heartbeat from " + self.mid)
-        self.got_heartbeat = 1  # check if server sends heartbeats at all
-        if self.got_heartbeat:
-            self.heartbeat_interval = int(time()) - self.lastbeat
-            print("heartbeat_interval = " + str(self.heartbeat_interval))
+        self.got_heartbeat = 1
+        self.heartbeat_interval = int(time()) - self.lastbeat
         self.lastbeat = int(time())
-
-        # self.q.put({"mid": self.mid, 'json': {'content': 'beat'}})
 
 
 class MastodonUser:
     def __init__(self, login, access_token):
         if access_token:
             try:
-                uname, host = login.split("@")
+                _, host = login.split("@")
             except ValueError:
                 host = login
             self.mastodon_id = login
@@ -282,13 +263,20 @@ class MastodonUser:
                     api_base_url='https://' + host,
                     request_timeout=20
                 )
+
             except MastodonNetworkError as e:
                 print(str(e))
-                raise NetworkError()
+                raise NetworkError() from e
+
             except Exception as e:
                 print("Other connection to mastodon error")
                 print(str(e))
+
         self.jids = set()
+        self.listener = None
+        self.stream = None
+        self.update_q = None
+        self.notification_q = None
 
     def close_listener(self):
         if self.stream:
@@ -311,19 +299,19 @@ class MastodonUser:
 
     def create_listener(self, update_queue=0, notification_queue=0):
         try:
-            self.listener = MastodonListener(self.mastodon_id)
+            self.listener = MastodonListener(self.mastodon_id, self.jids, self.on_update, self.on_notification)
             self.stream = self.mastodon.stream_user(
                 self.listener, run_async=True, timeout=20, reconnect_async=True)
+
         except MastodonVersionError:
             print("Failed to register listener for " + self.mastodon_id)
             return 0
+
         except Exception:
             print("Connect timeout for " + self.mastodon_id)
             return 0
+
         print("added listener for", self.mastodon_id)
-        self.listener.jids = self.jids
-        self.listener.on_update = self.on_update
-        self.listener.on_notification = self.on_notification
         self.listener.lastbeat = int(time())
         if update_queue:
             self.update_q = update_queue
@@ -352,23 +340,26 @@ class MastodonUser:
 
     def get_thread(self, message_id):
         mymessages = []
-        if id == 0:
+        if message_id == 0:
             return mymessages
+
         try:
             toot = self.mastodon.status(message_id)
             thread = self.mastodon.status_context(message_id)
             mentions = set()
-        except (MastodonNetworkError, exceptions.ConnectionError):
+
+        except (MastodonNetworkError, exceptions.ConnectionError) as e:
             print("network error for " + str(self.mastodon_id))
-            raise NetworkError()
-            return []
+            raise NetworkError() from e
+
         except MastodonNotFoundError as e:
             print(e)
-            raise NotFoundError()
-            return []
+            raise NotFoundError() from e
+
         except Exception as e:
             print(e)
             return []
+
         if len(thread['ancestors']) > 0:
             for t in thread['ancestors']:
                 aa = self.listener.process_update(t)
@@ -389,17 +380,17 @@ class MastodonUser:
 
     def start_register(self, server):
         try:
-            (id, secret) = Mastodon.create_app(
+            (client_id, secret) = Mastodon.create_app(
                 client_name='mastaj xmpp gateway',
                 api_base_url="https://" + server
             )
             m = Mastodon(
-                client_id=id,
+                client_id=client_id,
                 client_secret=secret,
                 api_base_url="https://" + server
             )
             url = m.auth_request_url(
-                client_id=id,
+                client_id=client_id,
                 scopes=['read', 'write', 'follow'],
                 redirect_uris='urn:ietf:wg:oauth:2.0:oob'
             )
@@ -407,8 +398,8 @@ class MastodonUser:
             self.mastodon_id = server
             print(url)
             return url
-        except MastodonNetworkError:
-            raise NetworkError()
+        except MastodonNetworkError as e:
+            raise NetworkError() from e
 
     def finish_register(self, token):
         if not self.mastodon:
@@ -435,11 +426,17 @@ class MastodonUser:
             print(str(e))
             return 0
 
-    def check_timeout(self):
-        if not self.listener.got_heartbeat:
+    def process_timeout(self):
+        if not self.listener:
+            print(str(self.mastodon_id) + " does not have listener")
             return 0
-        ct = int(time())
-        if (ct - self.listener.lastbeat) > (TIMEOUT):
+        if not self.listener.got_heartbeat:
+            print(str(self.mastodon_id) + " does not have heartbeat")
+            return 0
+        current_time = int(time())
+        rest_time = current_time - self.listener.lastbeat
+        print(str(self.mastodon_id) + " last activity was " + str(rest_time) + " seconds ago")
+        if (current_time - self.listener.lastbeat) > (TIMEOUT):
             print("\n" + self.mastodon_id + " timeout")
             self.listener.got_heartbeat = 0
             m = EncodedMessage()
@@ -453,41 +450,38 @@ class MastodonUser:
             return 1
         return 0
 
-    # def auth_request_url(self):
-    #     return self.mastodon.auth_request_url(
-    #         client_id='Jabber gateway',
-    #         redirect_uris='urn:ietf:wg:oauth:2.0:oob',
-    #         scopes=['read', 'write', 'follow'],
-    #         force_login=False)
-
-    def status_reblog(self, id):
+    def status_reblog(self, status_id):
         try:
-            res = self.mastodon.status_reblog(id)
+            res = self.mastodon.status_reblog(status_id)
             return self.listener.process_update(res)
-        except MastodonNotFoundError:
-            raise NotFoundError()
-        except Exception as e:
-            print("Generic error")
-            raise GenericError(str(e))
 
-    def status_favourite(self, id):
-        try:
-            res = self.mastodon.status_favourite(id)
-            res = self.listener.process_update(res)
-            res.text = "Favourited:\n" + res.text
-            return res
-        except MastodonNotFoundError:
-            raise NotFoundError()
+        except MastodonNotFoundError as e:
+            raise NotFoundError() from e
+
         except Exception as e:
             print("Generic error")
-            raise GenericError(str(e))
+            raise GenericError(str(e)) from e
+
+    def status_favourite(self, status_id):
+        try:
+            result = self.mastodon.status_favourite(status_id)
+            result = self.listener.process_update(result)
+            result.text = "Favourited:\n" + result.text
+            return result
+
+        except MastodonNotFoundError as e:
+            raise NotFoundError() from e
+
+        except Exception as e:
+            print("Generic error")
+            raise GenericError(str(e)) from e
 
     def get_status(self, id):
         try:
             res = self.mastodon.status(id)
             return self.listener.process_update(res)
-        except MastodonNotFoundError:
-            raise NotFoundError()
+        except MastodonNotFoundError as e:
+            raise NotFoundError() from e
 
     def status_post(self, status, visibility='public', in_reply_to_id=None):
         try:
@@ -497,12 +491,15 @@ class MastodonUser:
                 visibility=visibility
             )
             return res
+
+        except MastodonNotFoundError as e:
+            print("NotFoundError")
+            raise NotFoundError() from e
+
         except MastodonAPIError as e:
             print("API Error:", str(e))
-            raise APIError(e)
-        except MastodonNotFoundError:
-            print("NotFoundError")
-            raise NotFoundError()
-        except MastodonNetworkError:
+            raise APIError(e) from e
+
+        except MastodonNetworkError as e:
             print("Network error")
-            raise NetworkError()
+            raise NetworkError() from e

@@ -1,16 +1,12 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
-
+import sys
 import mysql.connector
-# import time
-# from datetime import datetime
 from mysql.connector import errorcode
-# import re
 
 
 class MessageStore:
-    def __init__(self, host, port, database, username, password):
+    def __init__(self, host: str, port: str, database: str, username: str, password: str):
         self.host = host
         self.db = None
         if host:
@@ -20,7 +16,7 @@ class MessageStore:
         if self.db:
             self.db.close()
 
-    def connect(self, host, port, database, username, password):
+    def connect(self, host: str, port: str, database: str, username: str, password: str):
         self.host = host
         self.port = port
         self.database = database
@@ -33,12 +29,12 @@ class MessageStore:
                 database=database,
                 user=username,
                 password=password)
+
         except mysql.connector.Error as err:
             print("Error code =" + str(err.errno))
             print(err)
-            # time.sleep(1)
             if err.errno == errorcode.ER_BAD_DB_ERROR:
-                "Database is not exist. Trying to create"
+                print("Database is not exist. Trying to create")
                 try:
                     self.db = mysql.connector.connect(
                         host=host,
@@ -50,15 +46,15 @@ class MessageStore:
                         "CREATE DATABASE {} DEFAULT CHARACTER SET 'utf8mb4' COLLATE  utf8mb4_unicode_ci".format(self.database))
                     print("database created")
                     self.cursor.execute('USE {}'.format(self.database))
-                except mysql.connector.Error as err:
-                    print("Failed creating database: {}".format(err))
-                    exit(1)
+                except mysql.connector.Error as err1:
+                    print(f"Failed creating database: {0}".format(err1))
+                    sys.exit(1)
             else:
-                exit(1)
+                sys.exit(1)
+
         except Exception as e:
-            print("Cannot connect to database")
-            print(e)
-            exit(1)
+            print(f"Cannot connect to database: {0}" % e)
+            sys.exit(1)
 
         self.cursor = self.db.cursor(dictionary=True, buffered=True)
         self.cursor.execute(
@@ -92,10 +88,10 @@ class MessageStore:
                     CREATE INDEX `message` ON Messages (message)
                 ''')
                 self.cursor.execute('set names utf8mb4')
+
             except Exception as e:
-                print("Cannot create message table")
-                print(e)
-                exit(1)
+                print(f"Cannot create message table: {0}" % e)
+                sys.exit(1)
         self.cursor.close()
 
     def add_message(self, message, url, author, mentions, visibility, id, mid, date, feed='home'):
@@ -136,6 +132,7 @@ class MessageStore:
             self.db.commit()
             cursor.close()
             print("commit success")
+
         except Exception as e:
             print("Handled error : ")
             print(e)
@@ -146,19 +143,19 @@ class MessageStore:
         print("Search for '" + text + "'")
         text = ("%" + text + "%")
         sql = "SELECT * FROM Messages WHERE message LIKE %s AND mid = %s AND feed = %s ORDER BY date DESC LIMIT 1"
-        print("SELECT * FROM Messages WHERE message LIKE {} AND mid = {} AND feed = {} ORDER BY date DESC LIMIT 1".format(text, str(mid), str(feed)))
+        print(f"SELECT * FROM Messages WHERE message LIKE {0} AND mid = {1} AND feed = {2} ORDER BY date DESC LIMIT 1".format(text, str(mid), str(feed)))
         cursor = self.db.cursor(dictionary=True)
         cursor.execute(sql, (text, str(mid), str(feed)))
         res = cursor.fetchone()
         cursor.close()
         return res
 
-    def get_message_by_id(self, id: str, feed='home') -> dict:
-        sql = "SELECT * FROM Messages WHERE id = %s AND feed = %s LIMIT 1"
+    def get_message_by_id(self, mid: str, id: str) -> dict:
+        sql = "SELECT * FROM Messages WHERE id = %s AND mid = %s LIMIT 1"
         cursor = self.db.cursor(dictionary=True, buffered=True)
-        cursor.execute(sql, (str(id), str(feed)))
+        cursor.execute(sql, (str(id), str(mid)))
         a = cursor.fetchone()
-        print("get_message_by_id in feed " + feed)
+        print("get_message_by_id for mid " + mid)
         print(a)
         print("==")
         cursor.close()
@@ -175,7 +172,7 @@ class MessageStore:
     def get_messages_for_user_by_thread(self, mid, feed):
         sql = "SELECT id FROM Messages WHERE mid=%s AND feed=%s ORDER BY date DESC"
         print("MYSQL get_messages_for_user_by_thread")
-        print("SELECT id FROM Messages WHERE mid={} AND feed={} ORDER BY date DESC".format(str(mid), str(feed)))
+        print(f"SELECT id FROM Messages WHERE mid={0} AND feed={1} ORDER BY date DESC".format(str(mid), str(feed)))
         cursor = self.db.cursor(dictionary=True, buffered=True)
         cursor.execute(sql, (mid, str(feed)))
         a = cursor.fetchall()
@@ -190,5 +187,5 @@ class MessageStore:
 
     def drop_database(self):
         cursor = self.db.cursor(dictionary=True, buffered=True)
-        cursor.execute("DROP DATABASE %s" % (self.database))
+        cursor.execute("DROP DATABASE IF EXISTS {}".format(self.database))
         cursor.close()
