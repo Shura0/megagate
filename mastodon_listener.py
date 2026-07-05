@@ -247,6 +247,7 @@ class MastodonListener(StreamListener):
         self.got_heartbeat = 1
         self.heartbeat_interval = int(time()) - self.lastbeat
         self.lastbeat = int(time())
+        print("heartbeat for " + self.mid)
 
 
 class MastodonUser:
@@ -436,7 +437,7 @@ class MastodonUser:
         current_time = int(time())
         rest_time = current_time - self.listener.lastbeat
         print(str(self.mastodon_id) + " last activity was " + str(rest_time) + " seconds ago")
-        if (current_time - self.listener.lastbeat) > (TIMEOUT):
+        if rest_time > TIMEOUT:
             print("\n" + self.mastodon_id + " timeout")
             self.listener.got_heartbeat = 0
             m = EncodedMessage()

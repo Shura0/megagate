@@ -107,7 +107,15 @@ async def process_update(event):
             print(_status.mentions)
             print("mentions:", _status.mentions)
             print("from:", _status.from_mid)
-            print("mid:", message['mid'])
+
+            if _status.from_mid == "error":
+                msg = XMPP.make_message(ADMIN_JID,
+                                        _status.text,
+                                        mfrom='alerts@' + HOST,
+                                        mtype='chat')
+                msg.send()
+                continue
+
             if message_store.get_message_by_id(message['mid'], _status.id):
                 print("message was already received before. Ignore")
                 continue
@@ -412,7 +420,8 @@ def process_xmpp_message_thread(message):
     mastodon = mastodon_listeners.get(user['mid'])
     if not mastodon:
         return
-    mid = re.findall(r'(\d+)@', message['to'])[0]
+    print("got xmpp message to thread jid " + message['to'])
+    mid = re.findall(r'^(\d.+)@', message['to'])[0]
     print(mid)
     body = message['body']
 
@@ -915,7 +924,7 @@ def process_xmpp_reaction_thread(message):
     mastodon = mastodon_listeners.get(user['mid'])
     if not mastodon:
         return
-    mid = re.findall(r'(\d+)@', message['to'])[0]
+    mid = re.findall(r'^(\d.+)@', message['to'])[0]
     print(mid)
 
     toot = message_store.get_message_by_id(user['mid'], message['id'])
@@ -952,7 +961,7 @@ async def process_xmpp(event):
                     process_xmpp_message_home(message)
                 elif message['to'].startswith('new@'):
                     process_xmpp_message_new(message)
-                elif re.search(r'\d+@', message['to']):  # reply to thread
+                elif re.search(r'^\d.+@', message['to']):  # reply to thread
                     process_xmpp_message_thread(message)
                 elif message['to'].startswith('config@'):
                     process_xmpp_config(message)
@@ -969,7 +978,7 @@ async def process_xmpp(event):
                 print("Got reaction in queue")
                 if message['to'].startswith('home@'):
                     process_xmpp_reaction_home(message)
-                elif re.search(r'\d+@', message['to']):  # reply to thread
+                elif re.search(r'^\d.+@', message['to']):  # reply to thread
                     process_xmpp_reaction_thread(message)
 
             else:  # It's a command
@@ -1058,11 +1067,14 @@ def disconnected(s):
 def process_process():
     while RUN:
         for k, v in mastodon_listeners.items():
-            v.process_timeout()
+            result = v.process_timeout()
             if v.stream and (not v.stream.is_alive()):
                 print("I see a stream is not alive")
                 sleep(2)
                 v.create_listener(update_queue, notification_queue)
+            if result != 0:
+                print("focrce close by timeout")
+                v.stream.close()
         sleep(2)
     XMPP.send_offline(ADMIN_JID)
     XMPP.disconnect()
