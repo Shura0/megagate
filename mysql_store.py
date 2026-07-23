@@ -140,7 +140,7 @@ class MessageStore:
             print("Handled error : ")
             print(e)
 
-    def find_message(self, text, mid, feed='home'):
+    def find_message(self, text, mid, feed='home') -> dict:
         # text=re.sub(r'([^"])"',r'\1""',text)
         # text = re.sub(r'"', r'""', text)
         print("Search for '" + text + "'")
