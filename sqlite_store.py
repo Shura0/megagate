@@ -40,7 +40,7 @@ class MessageStore:
             if a:
                 print('ok')
 
-    def add_message(self, message, url, author, mentions, visibility, id, mid, date, feed='home'):
+    def add_message(self, message, url, author, mentions, visibility, id, mid, date, receive_time, feed='home'):
         try:
             if not author.startswith('@'):
                 author = '@' + author
@@ -57,9 +57,10 @@ class MessageStore:
         print("CURSOR")
         if res:
             return None
-        sql = "INSERT INTO 'Messages' (date, url, mentions, message, visibility, id, mid, feed) VALUES (?, ?, ?, ?, ?, ?, ?, ?);"
+        sql = "INSERT INTO 'Messages' (date, receive_time, url, mentions, message, visibility, id, mid, feed) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);"
         d = date.replace(microsecond=0).isoformat()
         params = (d,
+                  receive_time,
                   url,
                   mentions_str,
                   message,

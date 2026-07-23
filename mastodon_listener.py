@@ -50,6 +50,7 @@ class EncodedMessage:
         self.visibility = ''
         self.text = ''
         self.from_mid = ''
+        self.receive_time = 0
 
     def add_mentions(self, *argv):
         for i in argv:
@@ -71,6 +72,7 @@ class EncodedMessage:
             'from_mid': self.from_mid,
             'mentions': self.mentions,
             'visibility': self.visibility,
+            'receive_time': self.receive_time,
             'text': self.text
         }
 
@@ -93,7 +95,7 @@ class MastodonListener(StreamListener):
     def set_mid(self, mid):
         self.mid = mid
 
-    def process_update(self, status):
+    def process_update(self, status) -> EncodedMessage:
         data = status
         m = EncodedMessage()
         m.id = data['id']
@@ -120,8 +122,10 @@ class MastodonListener(StreamListener):
         print("Date is:" + str(date))
         print("Original date is:" + str(status.get('created_at')))
 
+        m.receive_time = int(time() * 1000)
+
         parser = html_parser.MyHTMLParser()
-        print(cont['content'])
+        print(cont['content'], flush=True)
         cont['content'] = re.sub(r'\n', '', cont['content'])
         parser.feed(cont['content'])
         parser.close()
@@ -164,6 +168,7 @@ class MastodonListener(StreamListener):
         m.type = data.get('type')
         to_out = ''
         m.from_mid = data['account']['acct']
+        m.receive_time = int(time() * 1000)
         if '@' not in m.from_mid:
             m.from_mid = '@' + m.from_mid + '@' + self.server_name
         if data['type'] == 'follow':
@@ -432,11 +437,11 @@ class MastodonUser:
             print(str(self.mastodon_id) + " does not have listener")
             return 0
         if not self.listener.got_heartbeat:
-            print(str(self.mastodon_id) + " does not have heartbeat")
+            # print(str(self.mastodon_id) + " does not have heartbeat")
             return 0
         current_time = int(time())
         rest_time = current_time - self.listener.lastbeat
-        print(str(self.mastodon_id) + " last activity was " + str(rest_time) + " seconds ago")
+        # print(str(self.mastodon_id) + " last activity was " + str(rest_time) + " seconds ago")
         if rest_time > TIMEOUT:
             print("\n" + self.mastodon_id + " timeout")
             self.listener.got_heartbeat = 0

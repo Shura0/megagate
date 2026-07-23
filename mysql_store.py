@@ -75,6 +75,7 @@ class MessageStore:
                         `id` VARCHAR(32) NOT NULL,
                         `mid` VARCHAR(64) NOT NULL,
                         `feed` VARCHAR(32) NOT NULL,
+                        `receive_time` BIGINT UNSIGNED DEFAULT 0,
                         KEY(`id`)
                     ) ENGINE = InnoDB
                 ''')
@@ -94,7 +95,7 @@ class MessageStore:
                 sys.exit(1)
         self.cursor.close()
 
-    def add_message(self, message, url, author, mentions, visibility, id, mid, date, feed='home'):
+    def add_message(self, message, url, author, mentions, visibility, id, mid, date, receive_time, feed='home'):
         try:
             if not author.startswith('@'):
                 author = '@' + author
@@ -107,7 +108,7 @@ class MessageStore:
         else:
             mentions_str = author
         # mentions_str = author + ' ' + mentions_str
-        print("going to add message: " + message)
+        print("going to add message: " + message + "\nfor mid: " + mid)
         sql = "SELECT id from Messages WHERE id=%s AND mid=%s AND feed=%s LIMIT 1"
         data = (str(id), mid, str(feed))
         try:
@@ -117,10 +118,11 @@ class MessageStore:
             if res:
                 print("Already added")
                 return None
-            sql = "INSERT INTO Messages (date, url, mentions, message, visibility, id, mid, feed) VALUES (FROM_UNIXTIME(%s), %s, %s, %s, %s, %s, %s, %s);"
+            sql = "INSERT INTO Messages (date, receive_time, url, mentions, message, visibility, id, mid, feed) VALUES (FROM_UNIXTIME(%s), %s, %s, %s, %s, %s, %s, %s, %s);"
             d = date.timestamp()
             params = (
                 d,
+                receive_time,
                 url,
                 mentions_str,
                 message.encode(),
@@ -128,6 +130,7 @@ class MessageStore:
                 str(id),
                 mid,
                 str(feed))
+            print("INSERT INTO Messages (date, receive_time, url, mentions, message, visibility, id, mid, feed) VALUES (FROM_UNIXTIME({}), {}, {}, {}, {}, {}, {}, {}, {});".format(*params))
             cursor.execute(sql, params)
             self.db.commit()
             cursor.close()
@@ -142,7 +145,7 @@ class MessageStore:
         # text = re.sub(r'"', r'""', text)
         print("Search for '" + text + "'")
         text = ("%" + text + "%")
-        sql = "SELECT * FROM Messages WHERE message LIKE %s AND mid = %s AND feed = %s ORDER BY date DESC LIMIT 1"
+        sql = "SELECT * FROM Messages WHERE message LIKE %s AND mid = %s AND feed = %s ORDER BY receive_time DESC, date DESC LIMIT 1"
         print(f"SELECT * FROM Messages WHERE message LIKE {0} AND mid = {1} AND feed = {2} ORDER BY date DESC LIMIT 1".format(text, str(mid), str(feed)))
         cursor = self.db.cursor(dictionary=True)
         cursor.execute(sql, (text, str(mid), str(feed)))
@@ -162,7 +165,7 @@ class MessageStore:
         return a
 
     def get_messages_for_user(self, mid):
-        sql = "SELECT id FROM Messages WHERE mid=%s AND feed=%s ORDER BY date DESC"
+        sql = "SELECT id FROM Messages WHERE mid=%s AND feed=%s ORDER BY receive_time DESC, date DESC"
         cursor = self.db.cursor(dictionary=True, buffered=True)
         cursor.execute(sql, (mid, 'home'))
         a = cursor.fetchall()
@@ -170,7 +173,7 @@ class MessageStore:
         return [i['id'] for i in a]
 
     def get_messages_for_user_by_thread(self, mid, feed):
-        sql = "SELECT id FROM Messages WHERE mid=%s AND feed=%s ORDER BY date DESC"
+        sql = "SELECT id FROM Messages WHERE mid=%s AND feed=%s ORDER BY receive_time DESC, date DESC"
         print("MYSQL get_messages_for_user_by_thread")
         print(f"SELECT id FROM Messages WHERE mid={0} AND feed={1} ORDER BY date DESC".format(str(mid), str(feed)))
         cursor = self.db.cursor(dictionary=True, buffered=True)

@@ -9,7 +9,7 @@ import threading
 import datetime
 from queue import Empty, Queue
 import re
-from time import sleep
+from time import sleep, time
 
 import mastodon_listener
 from mysql_store import MessageStore
@@ -147,7 +147,8 @@ async def process_update(event):
                         _status.visibility,
                         _status.id,
                         message['mid'],
-                        _status.date
+                        _status.date,
+                        _status.receive_time
                     )
                 # autobost processing
                 try:
@@ -206,6 +207,7 @@ async def process_notification(event):
                             _m.id,
                             message['mid'],
                             _m.date,
+                            _m.receive_time,
                             _m.id
                         )
                         for j in message['m'].jids:
@@ -633,7 +635,7 @@ def process_xmpp_message_thread(message):
             msg = XMPP.make_message(
                 message['jid'],
                 'Unknown command\n'
-                + text_constants.HELP_MESSAGE,
+                + text_constants.THREAD_HELP_MESSAGE,
                 mfrom=str(mid) + '@' + HOST,
                 mtype='chat')
             msg.send()
@@ -1090,7 +1092,7 @@ def mastodon_processor(login, v):
     if (mastodonUser.create_listener(update_queue, notification_queue)):
         mastodon_listeners[login] = mastodonUser
     print("Full list of listeners:")
-    for k, v in mastodon_listeners.items():
+    for k, v in list(mastodon_listeners.items()):
         print("\t", k, end=':')
         print(v.jids)
     print('===')
@@ -1201,7 +1203,7 @@ def _mastodon_process_reply_process(mid, mes_x, message, tp='update'):
     if tp == 'update':
         print("update")
         print("mid:", mid)
-        print("type", _m.type)
+        print("type:", _m.type)
         if _m.type == 'mention':  # we will receive it via notification again
             print("Not for update handler. Returning")
             return
@@ -1221,7 +1223,7 @@ def _mastodon_process_reply_process(mid, mes_x, message, tp='update'):
             thread_messages = mastodon.get_thread(search_for)
             first_message = thread_messages[0]
             stored_message = message_store.get_message_by_id(mid, first_message.id)
-            print("thead", first_message.id)
+            print("thread", first_message.id)
             thread_id = first_message.id
             break
         except mastodon_listener.NetworkError:
@@ -1263,6 +1265,7 @@ def _mastodon_process_reply_process(mid, mes_x, message, tp='update'):
                 _m.id,
                 mid,
                 _m.date,
+                _m.receive_time,
                 first_message.id
             )
         else:
@@ -1287,7 +1290,8 @@ def _mastodon_process_reply_process(mid, mes_x, message, tp='update'):
                         _m.visibility,
                         _m.id,
                         mid,
-                        _m.date
+                        _m.date,
+                        _m.receive_time
                     )
                 else:
                     print("Reply will not be delivered. Reply delivery is disabled")
@@ -1311,6 +1315,7 @@ def _mastodon_process_reply_process(mid, mes_x, message, tp='update'):
                 _m.id,
                 mid,
                 _m.date,
+                _m.receive_time,
                 thread_id
             )
         else:
@@ -1332,7 +1337,8 @@ def _mastodon_process_reply_process(mid, mes_x, message, tp='update'):
                         _m.visibility,
                         _m.id,
                         mid,
-                        _m.date
+                        _m.date,
+                        _m.receive_time
                     )
 
 
@@ -1382,6 +1388,7 @@ def mastodon_get_thread_process(jid, mes_x):
             _m.id,
             user['mid'],
             _m.date,
+            _m.receive_time,
             thread_messages[0].id
         )
         msg = XMPP.make_message(
@@ -1428,6 +1435,7 @@ def mastodon_post_status_process(jid, in_reply_to_id, status, visibility):
                     toot['id'],
                     user['mid'],
                     toot['created_at'],
+                    int(time() * 1000),
                     feed
                 )
             else:
