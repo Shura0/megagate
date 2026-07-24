@@ -322,10 +322,11 @@ def process_xmpp_message_home(message):
         if res:
             h_id = int(res[0])
         print("Going to get link to message", h_id)
-        ms = message_store.get_messages_for_user(user['mid'])
-        if h_id >= len(ms):
-            raise mastodon_listener.NotFoundError()
-        mes_x = message_store.get_message_by_id(user['mid'], ms[h_id])
+        # ms = message_store.get_messages_for_user(user['mid'])
+        # if h_id >= len(ms):
+        #     raise mastodon_listener.NotFoundError()
+        # mes_x = message_store.get_message_by_id(user['mid'], ms[h_id])
+        mes_x = message_store.get_messages_for_user_by_index(user['mid'], h_id)
         if mes_x:
             msg = XMPP.make_message(
                 message['jid'],

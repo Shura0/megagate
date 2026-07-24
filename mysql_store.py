@@ -165,12 +165,20 @@ class MessageStore:
         return a
 
     def get_messages_for_user(self, mid):
-        sql = "SELECT id FROM Messages WHERE mid=%s AND feed=%s ORDER BY receive_time DESC, date DESC"
+        sql = "SELECT id FROM Messages WHERE mid=%s AND feed=%s ORDER BY receive_time DESC, date DESC LIMIT 50"
         cursor = self.db.cursor(dictionary=True, buffered=True)
         cursor.execute(sql, (mid, 'home'))
         a = cursor.fetchall()
         cursor.close()
         return [i['id'] for i in a]
+
+    def get_messages_for_user_by_index(self, mid: str, index: int) -> dict:
+        sql = "SELECT * FROM Messages WHERE mid=%s AND feed=%s ORDER BY receive_time DESC, date DESC LIMIT 1 offset %s"
+        cursor = self.db.cursor(dictionary=True, buffered=True)
+        cursor.execute(sql, (mid, 'home', index))
+        a = cursor.fetchone()
+        cursor.close()
+        return a
 
     def get_messages_for_user_by_thread(self, mid, feed):
         sql = "SELECT id FROM Messages WHERE mid=%s AND feed=%s ORDER BY receive_time DESC, date DESC"
