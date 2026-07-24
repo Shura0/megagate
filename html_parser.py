@@ -82,8 +82,8 @@ class MyHTMLParser(HTMLParser):
                 ):
                     self.link_text += data
                 else:
-                    if data == self.link:
-                        self.link_text = data
+                    if data in self.link:
+                        self.link_text = self.link
                     else:
                         self.link_text = '[' + data + ']' + '(' + self.link + ')'
                 return
