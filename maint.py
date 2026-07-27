@@ -120,52 +120,25 @@ async def process_update(event):
                 print("message was already received before. Ignore")
                 continue
 
-            if _status.in_reply_to_id:
-                print("reply to", _status.in_reply_to_id)
-                if '@' + message['mid'] in _status.mentions:
-                    print("Undo update. We will receive it via notification")
-                    continue
-                if _status.from_mid != '@' + message['mid']:  # not our own message
-                    t = threading.Thread(target=_mastodon_process_reply_process
-                , args=(message['mid'], _status))
-                    t.start()
-                else:
-                    print("Got own message. Ignoring")
-            else:
-                print("passed to xmpp")
+            t = threading.Thread(target=_mastodon_process_reply_process, args=(message['mid'], _status))
+            t.start()
+
+            # autobost processing
+            try:
+                print("autoboost processing")
                 for j in message['m'].jids:
-                    msg = XMPP.make_message(j,
-                                            _status.text,
-                                            mfrom='home@' + HOST,
-                                            mtype='chat')
-                    msg['id'] = str(_status.id)
-                    msg.send()
-                    message_store.add_message(
-                        _status.text,
-                        _status.url,
-                        _status.from_mid,
-                        _status.mentions,
-                        _status.visibility,
-                        _status.id,
-                        message['mid'],
-                        _status.date,
-                        _status.receive_time
-                    )
-                # autobost processing
-                try:
-                    print("autoboost processing")
-                    for j in message['m'].jids:
-                        print("for " + str(j))
-                        line = users_db.getAutoboostByJid(j)
-                        print("autoboost names:\n" + str(line))
-                        print("post from " + str(_status.from_mid))
-                        if _status.from_mid.lower() in line:
-                            print("got reblog")
-                            mastodon = mastodon_listeners.get(message['mid'])
-                            if mastodon:
-                                mastodon.status_reblog(_status.id)
-                except Exception as e:
-                    print(str(e))
+                    print("for " + str(j))
+                    line = users_db.getAutoboostByJid(j)
+                    print("autoboost names:\n" + str(line))
+                    print("post from " + str(_status.from_mid))
+                    if _status.from_mid.lower() in line:
+                        print("got reblog")
+                        mastodon = mastodon_listeners.get(message['mid'])
+                        if mastodon:
+                            mastodon.status_reblog(_status.id)
+            except Exception as e:
+                print(str(e))
+
         except Empty:
             await asyncio.sleep(0.2)
             # pass
@@ -190,37 +163,15 @@ async def process_notification(event):
             print("\n\n====")
             print(_m.to_dict())
             print("====\n\n\n")
+            if message_store.get_message_by_id(message['mid'], _m.id):
+                print("message was already received before. Ignore")
+                continue
+            
             if _m.type == 'mention':
-                if _m.in_reply_to_id:
-                    print("reply to id:", _m.in_reply_to_id)
-                    t = threading.Thread(target=_mastodon_process_reply_process, args=(message['mid'], _m, 'notification'))
-                    t.start()
-                    print("process started")
-                else:
-                    print("Not reply")
-                    try:
-                        message_store.add_message(
-                            _m.text,
-                            _m.url,
-                            _m.from_mid,
-                            _m.mentions,
-                            _m.visibility,
-                            _m.id,
-                            message['mid'],
-                            _m.date,
-                            _m.receive_time,
-                            _m.id
-                        )
-                        for j in message['m'].jids:
-                            msg = XMPP.make_message(
-                                j,
-                                _m.text,
-                                mtype='chat',
-                                mfrom=str(_m.id) + "@" + HOST)
-                            msg['id'] = str(_m.id)
-                            msg.send()
-                    except Exception as e:
-                        print("Error: " + str(e))
+                print("reply to id:", _m.in_reply_to_id)
+                t = threading.Thread(target=_mastodon_process_reply_process, args=(message['mid'], _m, 'notification'))
+                t.start()
+                print("process started")
             else:  # message in not mention, but something other
                 for j in message['m'].jids:
                     msg = XMPP.make_message(
@@ -1235,6 +1186,7 @@ def _mastodon_process_reply_process(mid, message, tp='update'):
         if mid in _m.mentions:
             print("Receiver is in mentions. Ignoring update, we will receive it via notification")
             return
+
     stored_message = None
     thread_id = 'home'
     user_settings = users_db.get_user_by_jid(jid)
@@ -1243,8 +1195,8 @@ def _mastodon_process_reply_process(mid, message, tp='update'):
     if _m.in_reply_to_id:
         if '@' + mid == _m.from_mid:
             print("Got own message")
-            my_message = message_store.get_message_by_id_not_in_home(mid, _m.from_mid)
-            if my_message:
+            my_message = message_store.get_message_by_id_not_in_home(mid, _m.id)
+            if my_message or tp == 'notification':
                 return
         else:
             if user_settings['receive_replies'] != '1':
