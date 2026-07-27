@@ -224,6 +224,7 @@ class TestNotification(unittest.TestCase):
 
     def test_05_own_update_other(self):
         """Get update with our own post we posted from other client (web, etc.). Message isn't in DB"""
+        # Should be sent to xmpp as start of new thread
 
         mock_xmpp = Mock()
         mock_msg = Mock()
@@ -251,8 +252,9 @@ class TestNotification(unittest.TestCase):
         self.assertEqual(1, len(message))
 
     def test_06_own_update(self):
-
         """Get update with our own post. It's already in DB"""
+        # Should be ignored
+
         mock_xmpp = Mock()
         mock_msg = Mock()
         mock_msg.__setitem__ = Mock()
@@ -271,8 +273,9 @@ class TestNotification(unittest.TestCase):
         mock_xmpp.make_message.assert_not_called()
 
     def test_07_own_update_as_reply(self):
-
         """Get update with our own reply from other client (web, etc.). Message isn't in DB"""
+        # Should be sent to xmpp as part of thread
+
         mock_xmpp = Mock()
         mock_msg = Mock()
         mock_msg.__setitem__ = Mock()
@@ -296,4 +299,4 @@ class TestNotification(unittest.TestCase):
         )
 
         message = self.message_store.get_messages_for_user_by_thread(MASTODON_ID, '3091105-0')
-        self.assertEqual(1, len(message))
+        self.assertEqual(['3091105-1', '3091105-0'], message)

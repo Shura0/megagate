@@ -1216,6 +1216,7 @@ def mastodon_register_finish_process(jid, code):
             mtype='chat')
         msg.send()
 
+
 def _mastodon_process_reply_process(mid, message, tp='update'):
     users_db = db.Db(USERS_DB)
     mastodon = mastodon_listeners.get(mid)
@@ -1241,20 +1242,33 @@ def _mastodon_process_reply_process(mid, message, tp='update'):
         return
     if _m.in_reply_to_id:
         if '@' + mid == _m.from_mid:
-            print("Got own message. Return")
-            return
-
-        if user_settings['receive_replies'] != '1':
-            return
+            print("Got own message")
+            my_message = message_store.get_message_by_id_not_in_home(mid, _m.from_mid)
+            if my_message:
+                return
+        else:
+            if user_settings['receive_replies'] != '1':
+                return
 
         stored_message = message_store.get_message_by_id_not_in_home(mid, _m.in_reply_to_id)
-        
+
         if stored_message:
             thread_id = stored_message['feed']
             print("Got message! Thread " + thread_id)
         else:
             if '@' + mid not in _m.mentions and tp != 'notification':
                 return
+
+    else:
+        # Not a reply. New post.
+        stored_message = message_store.get_message_by_id_not_in_home(mid, _m.id)
+        if stored_message:
+            return
+
+        if '@' + mid == _m.from_mid:
+            # Own post from other client (web, etc.)
+            # Should start new thread
+            thread_id = _m.id
 
     msg = XMPP.make_message(jid,
                             _m.text,
@@ -1275,6 +1289,7 @@ def _mastodon_process_reply_process(mid, message, tp='update'):
         _m.receive_time,
         thread_id
     )
+
 
 def mastodon_get_thread_process(jid, mes_x):
     users_db = db.Db(USERS_DB)
