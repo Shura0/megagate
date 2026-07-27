@@ -126,6 +126,10 @@ async def process_update(event):
             # autobost processing
             try:
                 print("autoboost processing")
+                if _status.in_reply_to_id:
+                    print("It's reply. Passing")
+                    continue
+
                 for j in message['m'].jids:
                     print("for " + str(j))
                     line = users_db.getAutoboostByJid(j)
@@ -1183,7 +1187,8 @@ def _mastodon_process_reply_process(mid, message, tp='update'):
         if _m.type == 'mention':  # we will receive it via notification again
             print("Not for update handler. Returning")
             return
-        if mid in _m.mentions:
+        if ('@' + mid in _m.mentions) and ('@' + mid != _m.from_mid):
+            # Our own messages should not be ignored, its could be posted from other mastodon client
             print("Receiver is in mentions. Ignoring update, we will receive it via notification")
             return
 
