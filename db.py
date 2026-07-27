@@ -53,6 +53,15 @@ class Db:
             self.cursor.execute('ALTER TABLE Users ADD COLUMN receive_replies TEXT DEFAULT (1)')
             res = self.db.commit()
 
+        flag = 1
+        for r in res:
+            if r['name'] == 'reply_quotation':
+                flag = 0
+        if flag:
+            print("Old version of users base... Upgrading")
+            self.cursor.execute('ALTER TABLE Users ADD COLUMN reply_quotation TEXT DEFAULT (0)')
+            res = self.db.commit()
+
     def get_user_by_jid(self, jid):
         self.cursor.execute('SELECT * FROM "Users" WHERE jid = (?)', [jid])
         res = self.cursor.fetchone()
@@ -164,4 +173,9 @@ class Db:
     def set_receive_replies_by_mid(self, mid, val):
         mid = mid.lower()
         self.cursor.execute("UPDATE 'Users' SET `receive_replies`=(?) WHERE mid = (?)", (val, mid))
+        self.db.commit()
+
+    def set_quotation_by_mid(self, mid, val):
+        mid = mid.lower()
+        self.cursor.execute("UPDATE 'Users' SET `reply_quotation`=(?) WHERE mid = (?)", (val, mid))
         self.db.commit()

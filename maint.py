@@ -126,7 +126,8 @@ async def process_update(event):
                     print("Undo update. We will receive it via notification")
                     continue
                 if _status.from_mid != '@' + message['mid']:  # not our own message
-                    t = threading.Thread(target=_mastodon_process_reply_process, args=(message['mid'], _status.id, _status))
+                    t = threading.Thread(target=_mastodon_process_reply_process
+                , args=(message['mid'], _status))
                     t.start()
                 else:
                     print("Got own message. Ignoring")
@@ -192,7 +193,7 @@ async def process_notification(event):
             if _m.type == 'mention':
                 if _m.in_reply_to_id:
                     print("reply to id:", _m.in_reply_to_id)
-                    t = threading.Thread(target=_mastodon_process_reply_process, args=(message['mid'], _m.id, _m, 'notification'))
+                    t = threading.Thread(target=_mastodon_process_reply_process, args=(message['mid'], _m, 'notification'))
                     t.start()
                     print("process started")
                 else:
@@ -472,13 +473,13 @@ def process_xmpp_message_thread(message):
             msg.send()
 
     elif body.upper() == 'RR':  # Reblog first message
-       
+
         thread = threading.Thread(
             target=mastodon_reblog_fav_status_process,
             args=('r', message['jid'], mid),
             name='mastodon_reblog_' + message['jid'])
         thread.start()
-        
+
     elif body.upper() == 'M':
         message_store = get_message_store()
         messages = message_store.get_messages_for_user_by_thread(
@@ -697,7 +698,7 @@ def process_xmpp_config(message):
                     # pass
                 process_xmpp_config(message)
 
-            elif body == 'help':
+            elif body == 'help' or body == 'h':
                 msg = XMPP.make_message(
                     message['jid'],
                     text_constants.CONFIG_HELP_MESSAGE,
@@ -835,6 +836,34 @@ def process_xmpp_config(message):
                         message_text = "You receive replies in home feed"
                     else:
                         message_text = "You do not receive replies in home feed"
+                msg = XMPP.make_message(
+                    message['jid'],
+                    message_text,
+                    mfrom='config@' + HOST,
+                    mtype='chat')
+                msg.send()
+
+            elif re.match(r'quotation', body):
+                print("quotation")
+                res = re.match(r'quotation\W+(.*)', body, re.I)
+                message_text = 'Unknown command'
+                try:
+                    print(str(user))
+                    if res[1] == 'on':
+                        users_db.set_quotation_by_mid(user['mid'], 1)
+                        message_text = 'Now answers you receive will contain a quotation of message it answers'
+                    elif res[1] == 'off':
+                        users_db.set_quotation_by_mid(user['mid'], 0)
+                        message_text = 'Now you will NOT see quotations in answers in threads'
+
+                except Exception as e:  # NoneType
+                    print("error:" + str(e))
+                    u = users_db.get_user_by_jid(message['jid'])
+                    print(str(u))
+                    if u['reply_quotation'] == '1':
+                        message_text = "Qutations are enabled"
+                    else:
+                        message_text = "Quotations in replies are disabled"
                 msg = XMPP.make_message(
                     message['jid'],
                     message_text,
@@ -1187,19 +1216,13 @@ def mastodon_register_finish_process(jid, code):
             mtype='chat')
         msg.send()
 
-
-def _mastodon_process_reply_process(mid, mes_x, message, tp='update'):
+def _mastodon_process_reply_process(mid, message, tp='update'):
     users_db = db.Db(USERS_DB)
-    # user = users_db.get_user_by_jid(jid)
-    # user = users.getUsersByMid(mid)[0]
-    # if not user:
-    #    return
     mastodon = mastodon_listeners.get(mid)
-    # message_store = MessageStore(MESSAGES_DB)
-    # message_store = MessageStore(MYSQL_HOST, MYSQL_PORT, MYSQL_DATABASE, MYSQL_USERNAME, MYSQL_PASSWORD)
     message_store = get_message_store()
     if not mastodon:
         return
+    jid = next(iter(mastodon.jids))
     _m = message
     if tp == 'update':
         print("update")
@@ -1211,137 +1234,47 @@ def _mastodon_process_reply_process(mid, mes_x, message, tp='update'):
         if mid in _m.mentions:
             print("Receiver is in mentions. Ignoring update, we will receive it via notification")
             return
-    net_tries = 3
     stored_message = None
-    thread_id = None
+    thread_id = 'home'
+    user_settings = users_db.get_user_by_jid(jid)
+    if not user_settings:
+        return
     if _m.in_reply_to_id:
-        search_for = _m.in_reply_to_id
-    else:
-        search_for = mes_x
-    while True:
-        try:
-            print("search for message id", str(search_for))
-            thread_messages = mastodon.get_thread(search_for)
-            first_message = thread_messages[0]
-            stored_message = message_store.get_message_by_id(mid, first_message.id)
-            print("thread", first_message.id)
-            thread_id = first_message.id
-            break
-        except mastodon_listener.NetworkError:
-            print("Network error. Retry...")
-            print(mes_x)
-            print(HOST)
-            net_tries -= 1
-            if net_tries < 1:
-                print("Network error. Abort...")
-                print(mes_x)
-                print(HOST)
+        if '@' + mid == _m.from_mid:
+            print("Got own message. Return")
+            return
+
+        if user_settings['receive_replies'] != '1':
+            return
+
+        stored_message = message_store.get_message_by_id_not_in_home(mid, _m.in_reply_to_id)
+        
+        if stored_message:
+            thread_id = stored_message['feed']
+            print("Got message! Thread " + thread_id)
+        else:
+            if '@' + mid not in _m.mentions and tp != 'notification':
                 return
-        except mastodon_listener.NotFoundError:
-            print("not found", str(search_for))
-            break
 
-    print("Process_reply")
-    print(_m.to_dict())
-    if stored_message:
-        print("found")
-        # message_store.update_mentions(first_message.id,_m.mentions)
-        # mentions_str = stored_message['mentions']
-        # mentions = set(mentions_str.split(' '))
-        if '@' + mid in _m.mentions or ((stored_message['mentions'].split(' '))[0] == '@' + mid):
-            print("answer to known message")
-            for j in mastodon.jids:
-                msg = XMPP.make_message(j,
-                                        _m.text,
-                                        mfrom=str(first_message.id) + '@' + HOST,
-                                        mtype='chat')
-                msg['id'] = str(_m.id)
-                msg.send()
-            message_store.add_message(
-                _m.text,
-                _m.url,
-                _m.from_mid,
-                _m.mentions,
-                _m.visibility,
-                _m.id,
-                mid,
-                _m.date,
-                _m.receive_time,
-                first_message.id
-            )
-        else:
-            print("unknown message. Not to me")
-            for j in mastodon.jids:
-                # check if user has disabled replies receiving
-                u = users_db.get_user_by_jid(j)
-                if (u and u['receive_replies'] == '1') or tp == 'notification':
-                    msg = XMPP.make_message(
-                        j,
-                        _m.text,
-                        mfrom='home@' + HOST,
-                        mtype='chat'
-                    )
-                    msg['id'] = str(_m.id)
-                    msg.send()
-                    message_store.add_message(
-                        _m.text,
-                        _m.url,
-                        _m.from_mid,
-                        _m.mentions,
-                        _m.visibility,
-                        _m.id,
-                        mid,
-                        _m.date,
-                        _m.receive_time
-                    )
-                else:
-                    print("Reply will not be delivered. Reply delivery is disabled")
-    else:
-        if '@' + mid in _m.mentions:
-            if not thread_id:
-                thread_id = _m.id
-            for j in mastodon.jids:
-                msg = XMPP.make_message(j,
-                                        _m.text,
-                                        mfrom=str(thread_id) + '@' + HOST,
-                                        mtype='chat')
-                msg['id'] = str(_m.id)
-                msg.send()
-            message_store.add_message(
-                _m.text,
-                _m.url,
-                _m.from_mid,
-                _m.mentions,
-                _m.visibility,
-                _m.id,
-                mid,
-                _m.date,
-                _m.receive_time,
-                thread_id
-            )
-        else:
-            for j in mastodon.jids:
-                # check if user has disabled replies receiving
-                u = users_db.get_user_by_jid(j)
-                if (u and u['receive_replies'] == '1') or tp == 'notification':
-                    msg = XMPP.make_message(j,
-                                            _m.text,
-                                            mfrom='home@' + HOST,
-                                            mtype='chat')
-                    msg['id'] = str(_m.id)
-                    msg.send()
-                    message_store.add_message(
-                        _m.text,
-                        _m.url,
-                        _m.from_mid,
-                        _m.mentions,
-                        _m.visibility,
-                        _m.id,
-                        mid,
-                        _m.date,
-                        _m.receive_time
-                    )
+    msg = XMPP.make_message(jid,
+                            _m.text,
+                            mfrom=str(thread_id) + '@' + HOST,
+                            mtype='chat')
+    msg['id'] = str(_m.id)
+    msg.send()
 
+    message_store.add_message(
+        _m.text,
+        _m.url,
+        _m.from_mid,
+        _m.mentions,
+        _m.visibility,
+        _m.id,
+        mid,
+        _m.date,
+        _m.receive_time,
+        thread_id
+    )
 
 def mastodon_get_thread_process(jid, mes_x):
     users_db = db.Db(USERS_DB)
@@ -1351,6 +1284,7 @@ def mastodon_get_thread_process(jid, mes_x):
     mastodon = mastodon_listeners.get(user['mid'])
     if not mastodon:
         return
+
     try:
         thread_messages = mastodon.get_thread(mes_x)
     except mastodon_listener.NetworkError:
@@ -1365,17 +1299,17 @@ def mastodon_get_thread_process(jid, mes_x):
             mfrom=str(mes_x) + '@' + HOST)
         msg.send()
         return
+
     if len(thread_messages) < 1:
-        # raise mastodon_listener.NotFoundError()
         msg = XMPP.make_message(
             jid,
             "Message not found",
             mtype='chat',
             mfrom=str(thread_messages[0].id) + '@' + HOST)
         msg.send()
+
         return
-    # message_store = MessageStore(MESSAGES_DB)
-    # message_store = MessageStore(MYSQL_HOST, MYSQL_PORT, MYSQL_DATABASE, MYSQL_USERNAME, MYSQL_PASSWORD)
+
     message_store = get_message_store()
     for _m in thread_messages:
         print(_m.to_dict())
@@ -1392,17 +1326,23 @@ def mastodon_get_thread_process(jid, mes_x):
             _m.receive_time,
             thread_messages[0].id
         )
-        msg = XMPP.make_message(
-            jid,
-            _m.text,
-            mtype='chat',
-            mfrom=str(thread_messages[0].id) + '@' + HOST)
+        if user['reply_quotation'] == '0':
+            msg = XMPP.make_message(
+                jid,
+                _m.text,
+                mtype='chat',
+                mfrom=str(thread_messages[0].id) + '@' + HOST)
+        else:
+            pass
+            # msg = XMPP.plugin.get('xep_0461', 'BasePlugin').send_reply(
+            #     jid,
+
         msg['id'] = str(_m.id)
-        print(msg)
+        print(msg)        
         msg.send()
 
 
-def mastodon_post_status_process(jid, in_reply_to_id, status, visibility):
+def mastodon_post_status_process(jid: str, in_reply_to_id: str, status: str, visibility: str):
     users_db = db.Db(USERS_DB)
     user = users_db.get_user_by_jid(jid)
     if not user:
@@ -1410,11 +1350,12 @@ def mastodon_post_status_process(jid, in_reply_to_id, status, visibility):
     mastodon = mastodon_listeners.get(user['mid'])
     if not mastodon:
         return
+    mentions = []
+    feed = 'home'
+    message_store = get_message_store()
     try:
         if in_reply_to_id:
-            message_store = get_message_store()
-            last_message = message_store.get_message_by_id(user['mid'], in_reply_to_id)
-            mentions = []
+            last_message = message_store.get_message_by_id_not_in_home(user['mid'], in_reply_to_id)
             if last_message:
                 feed = last_message.get('feed', 'home')
                 mentions = last_message['mentions'].lower().split(' ')
@@ -1425,7 +1366,6 @@ def mastodon_post_status_process(jid, in_reply_to_id, status, visibility):
                         mentions.remove('@' + user['mid'].lower())
                 except ValueError:
                     pass
-                # mentions.append(author)
                 toot = mastodon.status_post(status=status, in_reply_to_id=in_reply_to_id, visibility=visibility)
                 message_store.add_message(
                     status,
@@ -1439,17 +1379,42 @@ def mastodon_post_status_process(jid, in_reply_to_id, status, visibility):
                     int(time() * 1000),
                     feed
                 )
+
+                return
+                
             else:
-                print(f"Message to reply to not found ({0})" % in_reply_to_id)
+                print("Message to reply to not found ({})".format(in_reply_to_id))
                 msg = XMPP.make_message(
                     jid,
                     "Message you are reply to is not found",
                     mtype='chat',
                     mfrom='new@' + HOST)
                 msg.send()
+                return
 
-        else:
-            mastodon.status_post(status=status, visibility=visibility)
+        toot = mastodon.status_post(status=status, visibility=visibility)
+        feed = toot['id']
+
+        message_store.add_message(
+            status,
+            toot['url'],
+            '@' + user['mid'].lower(),
+            mentions,
+            visibility,
+            toot['id'],
+            user['mid'],
+            toot['created_at'],
+            int(time() * 1000),
+            feed
+        )
+        msg = XMPP.make_message(
+            jid,
+            status,
+            mtype='chat',
+            mfrom=str(feed) + '@' + HOST)
+        msg['id'] = str(toot['id'])
+        print(msg)
+        msg.send()
 
     except mastodon_listener.NetworkError:
         print("error in main")

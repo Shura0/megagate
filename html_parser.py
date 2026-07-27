@@ -97,12 +97,3 @@ class MyHTMLParser(HTMLParser):
         _a = self.OUT
         self.OUT = ''
         return _a
-
-# instantiate the parser and fed it some HTML
-
-# parser = MyHTMLParser()
-# parser.feed('<html><head><title>Test</title></head>'
-#             '<body><h1>Parse me!</h1></body></html>')
-# parser.close()
-
-# print(parser.get_result())

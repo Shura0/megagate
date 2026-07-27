@@ -242,7 +242,6 @@ class MastodonListener(StreamListener):
 
         m.text = re.sub(r"\s+\n", "\n", to_out).rstrip()
         return m
-        # self.message_q.put({'mid': self.mid, 'status': m})
 
     def on_abort(self, error):
         print("ABORT " + self.mid)

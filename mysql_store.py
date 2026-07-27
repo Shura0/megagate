@@ -130,10 +130,10 @@ class MessageStore:
                 str(id),
                 mid,
                 str(feed))
-            print("INSERT INTO Messages (date, receive_time, url, mentions, message, visibility, id, mid, feed) VALUES (FROM_UNIXTIME({}), {}, {}, {}, {}, {}, {}, {}, {});".format(*params))
+            # print("INSERT INTO Messages (date, receive_time, url, mentions, message, visibility, id, mid, feed) VALUES (FROM_UNIXTIME({}), {}, {}, {}, {}, {}, {}, {}, {});".format(*params))
             cursor.execute(sql, params)
-            self.db.commit()
             cursor.close()
+            self.db.commit()
             print("commit success")
 
         except Exception as e:
@@ -164,6 +164,17 @@ class MessageStore:
         cursor.close()
         return a
 
+    def get_message_by_id_not_in_home(self, mid: str, id: str) -> dict:
+        sql = "SELECT * FROM Messages WHERE id = %s AND mid = %s AND feed <> %s LIMIT 1"
+        cursor = self.db.cursor(dictionary=True, buffered=True)
+        cursor.execute(sql, (str(id), str(mid), 'home'))
+        a = cursor.fetchone()
+        print("get_message_by_id_not_in_home for mid " + mid)
+        print(a)
+        print("==")
+        cursor.close()
+        return a
+
     def get_messages_for_user(self, mid):
         sql = "SELECT id FROM Messages WHERE mid=%s AND feed=%s ORDER BY receive_time DESC, date DESC LIMIT 50"
         cursor = self.db.cursor(dictionary=True, buffered=True)
@@ -183,7 +194,7 @@ class MessageStore:
     def get_messages_for_user_by_thread(self, mid, feed):
         sql = "SELECT id FROM Messages WHERE mid=%s AND feed=%s ORDER BY receive_time DESC, date DESC"
         print("MYSQL get_messages_for_user_by_thread")
-        print(f"SELECT id FROM Messages WHERE mid={0} AND feed={1} ORDER BY date DESC".format(str(mid), str(feed)))
+        print("SELECT id FROM Messages WHERE mid='{}' AND feed='{}' ORDER BY receive_time, date DESC".format(str(mid), str(feed)))
         cursor = self.db.cursor(dictionary=True, buffered=True)
         cursor.execute(sql, (mid, str(feed)))
         a = cursor.fetchall()
@@ -193,10 +204,14 @@ class MessageStore:
     def del_messages_by_mid(self, mid):
         cursor = self.db.cursor(dictionary=True, buffered=True)
         cursor.execute("DELETE FROM Messages WHERE mid= %s", (mid,))
-        self.db.commit()
         cursor.close()
+        self.db.commit()
 
     def drop_database(self):
         cursor = self.db.cursor(dictionary=True, buffered=True)
         cursor.execute("DROP DATABASE IF EXISTS {}".format(self.database))
         cursor.close()
+        self.db.commit()
+    
+    def disconnect(self):
+        self.db.disconnect()
