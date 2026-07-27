@@ -10,6 +10,7 @@ class Component(ComponentXMPP):
 
         self.add_event_handler("message", self.message)
         self.add_event_handler("reactions", self.reactions)
+        self.register_plugin('xep_0461')
         self.index = 0
         self.queue = None
         self.users = []

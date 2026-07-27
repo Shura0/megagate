@@ -1,0 +1,43 @@
+{
+  "id": "3091105-1",
+  "url": "https://juick.com/m/3091105#1",
+  "uri": "https://juick.com/m/3091105#1",
+  "created_at": "2026-07-19T18:13:09.026514Z",
+  "account": {
+    "id": "https://mastodon.world/ap/users/115722092263279862",
+    "username": "https://mastodon.world/ap/users/115722092263279862",
+    "acct": "https://mastodon.world/ap/users/115722092263279862",
+    "url": "https://mastodon.world/ap/users/115722092263279862",
+    "display_name": null,
+    "followers_count": 0,
+    "following_count": 0,
+    "statuses_count": 0,
+    "locked": false,
+    "header": "",
+    "note": "",
+    "emojis": [],
+    "created_at": "2008-10-22T00:00:00Z",
+    "source": {
+      "privacy": "public",
+      "note": ""
+    }
+  },
+  "in_reply_to_id": "3091105-0",
+  "in_reply_to_account_id": "686",
+  "spoiler_text": "",
+  "visibility": "public",
+  "content": "<p><span class=\"h-card\"><a class=\"u-url\" href=\"https://juick.com/test/\">@test</a></span>, <a href=\"https://juick.com/test/\" rel=\"nofollow\">@test</a> Сколько раз наблюдал такое на форумах (в основном технических): пойдет тенденция в одну сторону &mdash; все начинают поддакивать. Через год почему-то качнется в другую &mdash; и те же самые участники начинают неистово защищать противоположную точку зрения.</p>",
+  "reblogs_count": 0,
+  "favourites_count": 0,
+  "media_attachments": [],
+  "mentions": [
+    {
+      "id": "686",
+      "username": "test",
+      "url": "https://juick.com/test/",
+      "acct": "test"
+    }
+  ],
+  "emojis": [],
+  "tags": []
+}

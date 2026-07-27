@@ -14,7 +14,6 @@ import mastodon_listener
 from sqlite_store import MessageStore
 from mysql_store import MessageStore as MysqlStore
 import gxmpp
-import html_parser
 from queue import Empty, Queue
 import json
 import db
@@ -23,6 +22,7 @@ import csv
 from datetime import datetime, timezone
 from shutil import copyfile
 import maint as main
+from mastodon import StreamListener
 
 
 UPDATES_FILE = 'mastodon_update.json'
@@ -42,7 +42,6 @@ MYSQL_USERNAME='test'
 MYSQL_PASSWORD='test'
 
 update_queue=Queue()
-
 
 def test_messages(self, dbtype='sqlite'):
         tmp_db=MESSAGES_TEST_DB+'.bak'
@@ -156,7 +155,9 @@ class TestAll(unittest.TestCase):
                     _m.mentions,
                     _m.visibility,
                     _m.id,
-                    message['mid']
+                    message['mid'],
+                    _m.date,
+                    _m.receive_time
                 )
                 if _m.in_reply_to_id:
                     for j in message['m'].jids:
@@ -191,7 +192,9 @@ class TestAll(unittest.TestCase):
                         _m.mentions,
                         _m.visibility,
                         _m.id,
-                        message['mid']
+                        message['mid'],
+                        _m.date,
+                        _m.receive_time
                     )
                     for j in message['m'].jids:
                         # msg = XMPP.make_message(j,
@@ -355,90 +358,8 @@ class TestAll(unittest.TestCase):
         xmpp.add_users(users)
         self.assertEqual(users, xmpp.users)
 
-    def disable_test_html_parser(self):
-        html='''<p>Катали с приятелем в двухдневный поход на выходных.
-        Наснимал немножко видео и попробовал немножко помонтировать. Прошу смотреть и оценивать.<br>
-        День первый: <a href="https://www.youtube.com/watch?v=Rma0SafnztU" rel="nofollow noopener noreferrer" target="_blank">youtube.com</a></p>
-        <a href="https://juick.com/tag/%D0%B2%D0%B5%D0%BB%D0%BE" rel="nofollow noopener noreferrer" target="_blank">#вело</a>
-        <a href="https://juick.com/tag/bike" rel="nofollow noopener noreferrer" target="_blank">#bike</a>
+    
 
-'''
-        p=html_parser.MyHTMLParser()
-        p.feed(html)
-        p.close()
-        text=p.get_result()
-        # print("HTML parser text:'"+ text+"'")
-        sample_text='''
-Катали с приятелем в двухдневный поход на выходных.        Наснимал немножко видео и попробовал немножко помонтировать. Прошу смотреть и оценивать.
-        День первый: https://www.youtube.com/watch?v=Rma0SafnztU        #вело        #bike'''
-        # print("HTML parser sample:'"+ sample_text + "'")
-        self.assertEqual(text, sample_text)
-        
-        html='''<p>Сегодня снова колесил <a href="https://mastodon.host/tags/%D0%BF%D0%BE%D0%BB%D1%81%D1%82%D0%B0" class="mention hashtag
-" rel="nofollow noopener noreferrer" target="_blank">#<span>полста</span></a>. Дежурный маршрут: после дождей другое слиш
-ком рисковано.</p><p>Наконец начал методично работать над силой: только первый тягун преодолел на 22:28, а остальные — то
-лько на повышающих передачах (минимум 1,05).</p><p>Несмотря на обилие <a href="https://mastodon.host/tags/%D1%84%D0%BE%D1
-%82%D0%BE" class="mention hashtag" rel="nofollow noopener noreferrer" target="_blank">#<span>фото</span></a> остановок, с
-редний темп более 22 км/ч.</p><p>Фото в комментариях.</p><p><span class="h-card"><a href="https://mastodon.ml/@rf" class=
-"u-url mention" rel="nofollow noopener noreferrer" target="_blank">@<span>rf</span></a></span> <span class="h-card"><a hr
-ef="https://mastodon.social/@russian_mastodon" class="u-url mention" rel="nofollow noopener noreferrer" target="_blank">@
-<span>russian_mastodon</span></a></span></p>
-'''
-        sample_text='''
-Сегодня снова колесил  #полста. Дежурный маршрут: после дождей другое слишком рисковано.
-Наконец начал методично работать над силой: только первый тягун преодолел на 22:28, а остальные — только на повышающих передачах (минимум 1,05).
-Несмотря на обилие  #фото остановок, средний темп более 22 км/ч.
-Фото в комментариях.
-@rf @russian_mastodon'''
-        p=html_parser.MyHTMLParser()
-        p.feed(html)
-        p.close()
-        text=p.get_result()
-        # print(text)
-        self.assertEqual(text, sample_text)
-        html='<p>Я несколько лет не посещал этот сайт, с удивлением обнаружил, что он всё ещё жив и даже пополнился новыми фичами:</p><p>«Российский дзен. Бессмысленный и беспощадный».<br><a href="https://zenrus.ru/" rel="nofollow noopener noreferrer" target="_blank"><span class="invisible">https://</span><span class="">zenrus.ru/</span><span class="invisible"></span></a></p>'
-        sample_text='''
-Я несколько лет не посещал этот сайт, с удивлением обнаружил, что он всё ещё жив и даже пополнился новыми фичами:
-«Российский дзен. Бессмысленный и беспощадный».
-https://zenrus.ru/'''
-        p=html_parser.MyHTMLParser()
-        p.feed(html)
-        p.close()
-        text=p.get_result()
-        # print(text)
-        self.assertEqual(text, sample_text)
-        html='@<span class=""><a href="https://mastodon.host/users/velociraptor" class="u-url mention" rel="nofollow noopener noreferrer" target="_blank"><span class="mention">velociraptor</span></a></span> ИМХО зря покрасили, лубок получился. Или это всегда так было?'
-        sample_text='@velociraptor ИМХО зря покрасили, лубок получился. Или это всегда так было?'
-        p=html_parser.MyHTMLParser()
-        p.feed(html)
-        p.close()
-        text=p.get_result()
-        # print(text)
-        self.assertEqual(text, sample_text)
-        html='''Отдыхаете? Карантините помаленьку?<br><br>А мы пашем!!!<br><br>#<a href="https://friends.deko.cloud/search?tag=%D0%A2%D0%B0%D0%BA%D0%B8%D0%B5%D0%94%D0%B5%D0%BB%D0%B0" class="" rel="nofollow noopener noreferrer" target="_blank">ТакиеДела</a>
-<p><span class="h-card"><a href="https://friends.deko.cloud/profile/shuro" class="u-url mention" rel="nofollow noopener noreferrer" target="_blank">@<span>shuro</span></a></span> Жму руку.</p>'''
-        sample_text='''Отдыхаете? Карантините помаленьку?
-
-А мы пашем!!!
-
-#ТакиеДела
-@shuro Жму руку.'''
-        p=html_parser.MyHTMLParser()
-        p.feed(html)
-        p.close()
-        text=p.get_result()
-        # print(text)
-        self.assertEqual(text, sample_text)
-        html='''<p>Будет что послушать, иначе Aleckat &amp; Hynamo затеру до дыр. \n<a href="https://sound.skrep.in/library/albums/4" rel="nofollow noopener noreferrer" target="_blank"></a><a href="https://sound.skrep.in/library/albums/4" rel="nofollow noopener noreferrer" target="_blank">https://sound.skrep.in/library/albums/4</a>/</p>'''
-        sample_text='''
-Будет что послушать, иначе Aleckat & Hynamo затеру до дыр. https://sound.skrep.in/library/albums/4/'''
-        p=html_parser.MyHTMLParser()
-        p.feed(html)
-        p.close()
-        text=p.get_result()
-        #print("HTML parser text:'"+ text+"'")
-        # print(text)
-        self.assertEqual(text, sample_text)
 
     def disable_test_process_xmpp_thread1(self):
         S=self

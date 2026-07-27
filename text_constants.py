@@ -74,6 +74,8 @@ HELP
 "enable" or "e" - enable notifications
 "replies on" - show replies in home feed
 "replies off" - do not show replies in home feed
+"quotation on" - show quotatinons in thread answers
+"quotation off" - do not show cuotations in thread answers
 "autoboost <mastodon id>" or "ab <mastodon id>" - enable autoboost for <mastodon id>
 "info" or "i" - information about account
 '''

@@ -1,0 +1,456 @@
+{
+  "ancestors": [
+    {
+      "id": "3091105-0",
+      "url": "https://juick.com/m/3091105",
+      "uri": "https://juick.com/m/3091105",
+      "created_at": "2026-07-19T18:03:20.734815Z",
+      "account": {
+        "id": "686",
+        "username": "test",
+        "acct": "test",
+        "url": "https://juick.com/test/",
+        "display_name": "Александр Зайцев",
+        "followers_count": 166,
+        "following_count": 66,
+        "statuses_count": 3793,
+        "avatar": "https://juick.com/i/a/686-cea679c19980d7fbbf6ebb53e1330023.png",
+        "avatar_static": "https://juick.com/i/a/686-cea679c19980d7fbbf6ebb53e1330023.png",
+        "locked": false,
+        "header": "",
+        "note": "",
+        "emojis": [],
+        "created_at": "2008-10-22T00:00:00Z",
+        "source": {
+          "privacy": "public",
+          "note": ""
+        }
+      },
+      "spoiler_text": "",
+      "visibility": "public",
+      "content": "<p>Порою читаю какие-нибудь срачи^W полемику в интернете или смотрю высказывания разных видных деятелей и диву даюсь, насколько они последовательны в своих позициях и насколько всеобъемлющая у них в голове картина мира. По любому вопросу спроси &mdash; имеют мнение и могут его отстоять. А вот к сожалению у меня такой стройной картины не наблюдается. Причём не наблюдается не только картины мира в целом, но зачастую даже и какой-то последовательной позиции по самым разным бытовым вопросам. Например у меня как-то нормально уживаются такие, какзалось бы противоположные утверждения, как \"качественная вещь не может быть дешёвой\" и \"Да они за бренд дерут, вещь не может столько стоить\" или \"всё полезно, что в рот полезло\" и \"да тут один глутамат с красителем\". И применяю я их в зависимости от того, что мне сейчас выгодней.<br/>\n<br/>\nА на многие вещи у меня вообще мнения нет, просто не приходилось сталкиваться лично и не было нужды как-то вписывать их в свою (пусть плохонькую, но свою) картину мира.<br/>\n<br/>\nКажусь себе глупым и ничтожным. А потом вдруг начинаю думать, а может и вот у этих деятелей картина такая же как у меня, где-то противоречивая и не полная, просто сейчас они выбрали вот такую вот позицию и придумавают аргументы, оправдывающие её. Сложно всё это.... Надо что-то почитать на эту тему. <a class=\"hashtag\" href=\"https://juick.com/tag/%D0%B3%D0%BE%D0%B2%D0%BD%D0%BE\" rel=\"tag\">#говно</a> <a class=\"hashtag\" href=\"https://juick.com/tag/%D1%8F%D0%B6%D0%B0%D0%BB%D0%BE%D0%BA\" rel=\"tag\">#яжалок</a></p>",
+      "reblogs_count": 10,
+      "favourites_count": 2,
+      "media_attachments": [],
+      "mentions": [],
+      "emojis": [],
+      "tags": [
+        {
+          "name": "говно",
+          "url": "https://juick.com/t/%D0%B3%D0%BE%D0%B2%D0%BD%D0%BE"
+        },
+        {
+          "name": "яжалок",
+          "url": "https://juick.com/t/%D1%8F%D0%B6%D0%B0%D0%BB%D0%BE%D0%BA"
+        }
+      ]
+    }
+  ],
+  "descendants": [
+    {
+      "id": "3091105-2",
+      "url": "https://juick.com/m/3091105#2",
+      "uri": "https://juick.com/m/3091105#2",
+      "created_at": "2026-07-19T18:17:46.367595Z",
+      "account": {
+        "id": "https://libranet.de/profile/wthinker",
+        "username": "https://libranet.de/profile/wthinker",
+        "acct": "https://libranet.de/profile/wthinker",
+        "url": "https://libranet.de/profile/wthinker",
+        "display_name": null,
+        "followers_count": 0,
+        "following_count": 0,
+        "statuses_count": 0,
+        "locked": false,
+        "header": "",
+        "note": "",
+        "emojis": [],
+        "created_at": "2008-10-22T00:00:00Z",
+        "source": {
+          "privacy": "public",
+          "note": ""
+        }
+      },
+      "in_reply_to_id": "3091105-1",
+      "spoiler_text": "",
+      "visibility": "public",
+      "content": "<p><span class=\"h-card\"><a class=\"mention u-url\" href=\"https://mastodon.world/ap/users/115722092263279862\" data-user-uri=\"1\">@Anonymous</a></span>, <a href=\"https://juick.com/test/\" rel=\"nofollow\">@test</a> <a href=\"https://mastodon.world/@mamohin\" rel=\"nofollow\">@mamohin</a> Это потому, что мир состоит в основном из право-левацких уклонистов. )</p>",
+      "reblogs_count": 0,
+      "favourites_count": 0,
+      "media_attachments": [],
+      "mentions": [
+        {
+          "id": "686",
+          "username": "test",
+          "url": "https://juick.com/test/",
+          "acct": "test"
+        },
+        {
+          "id": "686",
+          "username": "mamohin",
+          "url": "https://mastodon.world/@mamohin",
+          "acct": "mamohin"
+        }
+      ],
+      "emojis": [],
+      "tags": []
+    },
+    {
+      "id": "3091105-3",
+      "url": "https://juick.com/m/3091105#3",
+      "uri": "https://juick.com/m/3091105#3",
+      "created_at": "2026-07-19T18:20:30.171581Z",
+      "account": {
+        "id": "https://libranet.de/profile/wthinker",
+        "username": "https://libranet.de/profile/wthinker",
+        "acct": "https://libranet.de/profile/wthinker",
+        "url": "https://libranet.de/profile/wthinker",
+        "display_name": null,
+        "followers_count": 0,
+        "following_count": 0,
+        "statuses_count": 0,
+        "locked": false,
+        "header": "",
+        "note": "",
+        "emojis": [],
+        "created_at": "2008-10-22T00:00:00Z",
+        "source": {
+          "privacy": "public",
+          "note": ""
+        }
+      },
+      "in_reply_to_id": "3091105-0",
+      "in_reply_to_account_id": "5",
+      "spoiler_text": "",
+      "visibility": "public",
+      "content": "<p><span class=\"h-card\"><a class=\"u-url\" href=\"https://juick.com/archive/\">@archive</a></span>, <a href=\"https://juick.com/test/\" rel=\"nofollow\">@test</a> Я не парюсь по этому поводу. Что-то я знаю и могу отстаивать свою точку зрения, а всё остальное &mdash; нет. Поэтому по поводу всего остального я могу иметь своё мнение, но спорить об этом и что-то доказывать не возьмусь. И это нормально, ибо всего не знает никто.</p>",
+      "reblogs_count": 0,
+      "favourites_count": 0,
+      "media_attachments": [],
+      "mentions": [
+        {
+          "id": "686",
+          "username": "test",
+          "url": "https://juick.com/test/",
+          "acct": "test"
+        }
+      ],
+      "emojis": [],
+      "tags": []
+    },
+    {
+      "id": "3091105-4",
+      "url": "https://juick.com/m/3091105#4",
+      "uri": "https://juick.com/m/3091105#4",
+      "created_at": "2026-07-19T18:24:40.889561Z",
+      "account": {
+        "id": "https://social.vivaldi.net/users/E23",
+        "username": "https://social.vivaldi.net/users/E23",
+        "acct": "https://social.vivaldi.net/users/E23",
+        "url": "https://social.vivaldi.net/users/E23",
+        "display_name": null,
+        "followers_count": 0,
+        "following_count": 0,
+        "statuses_count": 0,
+        "locked": false,
+        "header": "",
+        "note": "",
+        "emojis": [],
+        "created_at": "2008-10-22T00:00:00Z",
+        "source": {
+          "privacy": "public",
+          "note": ""
+        }
+      },
+      "in_reply_to_id": "3091105-0",
+      "in_reply_to_account_id": "5",
+      "spoiler_text": "",
+      "visibility": "public",
+      "content": "<p><span class=\"h-card\"><a class=\"u-url\" href=\"https://juick.com/archive/\">@archive</a></span>, <a href=\"https://juick.com/test/\" rel=\"nofollow\">@test</a> одни сруться и меняют позицию время от времени, другие сруться и просто все больше и Больше утверждают текущую. В любом случае покуда ведёшь диалог, формируется позиция</p>",
+      "reblogs_count": 0,
+      "favourites_count": 0,
+      "media_attachments": [],
+      "mentions": [
+        {
+          "id": "686",
+          "username": "test",
+          "url": "https://juick.com/test/",
+          "acct": "test"
+        }
+      ],
+      "emojis": [],
+      "tags": []
+    },
+    {
+      "id": "3091105-5",
+      "url": "https://juick.com/m/3091105#5",
+      "uri": "https://juick.com/m/3091105#5",
+      "created_at": "2026-07-19T19:00:21.712745Z",
+      "account": {
+        "id": "https://friends.deko.cloud/profile/shuro",
+        "username": "https://friends.deko.cloud/profile/shuro",
+        "acct": "https://friends.deko.cloud/profile/shuro",
+        "url": "https://friends.deko.cloud/profile/shuro",
+        "display_name": null,
+        "followers_count": 0,
+        "following_count": 0,
+        "statuses_count": 0,
+        "locked": false,
+        "header": "",
+        "note": "",
+        "emojis": [],
+        "created_at": "2008-10-22T00:00:00Z",
+        "source": {
+          "privacy": "public",
+          "note": ""
+        }
+      },
+      "in_reply_to_id": "3091105-0",
+      "in_reply_to_account_id": "5",
+      "spoiler_text": "",
+      "visibility": "public",
+      "content": "<p><span class=\"h-card\"><a class=\"u-url\" href=\"https://juick.com/archive/\">@archive</a></span>,\n<blockquote>\"качественная вещь не может быть дешёвой\" и \"Да они за бренд дерут, вещь не может столько стоить\"</blockquote><br/>\n<a href=\"https://mastodon.social/@test\" rel=\"nofollow\">@test</a> это как раз нормально и часто одно другое не исключает :) И качественная вещь не может стоить слишком дёшево, и бренды часто гонят шлак по запредельным ценам.</p>",
+      "reblogs_count": 0,
+      "favourites_count": 0,
+      "media_attachments": [],
+      "mentions": [
+        {
+          "id": "686",
+          "username": "test",
+          "url": "https://juick.com/test/",
+          "acct": "test"
+        }
+      ],
+      "emojis": [],
+      "tags": []
+    },
+    {
+      "id": "3091105-6",
+      "url": "https://juick.com/m/3091105#6",
+      "uri": "https://juick.com/m/3091105#6",
+      "created_at": "2026-07-19T20:18:40.444947Z",
+      "account": {
+        "id": "24858",
+        "username": "glupovat",
+        "acct": "glupovat",
+        "url": "https://juick.com/glupovat/",
+        "display_name": null,
+        "followers_count": 72,
+        "following_count": 4,
+        "statuses_count": 3679,
+        "avatar": "https://juick.com/i/a/24858-f7e569c4597ba32799d7e2d243303747.png",
+        "avatar_static": "https://juick.com/i/a/24858-f7e569c4597ba32799d7e2d243303747.png",
+        "locked": false,
+        "header": "",
+        "note": "",
+        "emojis": [],
+        "created_at": "2008-10-22T00:00:00Z",
+        "source": {
+          "privacy": "public",
+          "note": ""
+        }
+      },
+      "in_reply_to_id": "3091105-0",
+      "in_reply_to_account_id": "5",
+      "spoiler_text": "",
+      "visibility": "public",
+      "content": "<p><span class=\"h-card\"><a class=\"u-url\" href=\"https://juick.com/archive/\">@archive</a></span>,\n<blockquote>просто сейчас они выбрали вот такую вот позицию и придумавают аргументы, оправдывающие её</blockquote>\r<br/>\nТак и есть. А потом линия партии меняется, и аргументы плывут вместе с ней</p>",
+      "reblogs_count": 0,
+      "favourites_count": 0,
+      "media_attachments": [],
+      "mentions": [
+        {
+          "id": "686",
+          "username": "test",
+          "url": "https://juick.com/test/",
+          "acct": "test"
+        }
+      ],
+      "emojis": [],
+      "tags": []
+    },
+    {
+      "id": "3091105-7",
+      "url": "https://juick.com/m/3091105#7",
+      "uri": "https://juick.com/m/3091105#7",
+      "created_at": "2026-07-19T22:05:04.785917Z",
+      "account": {
+        "id": "https://hub.hubzilla.de/channel/erua",
+        "username": "https://hub.hubzilla.de/channel/erua",
+        "acct": "https://hub.hubzilla.de/channel/erua",
+        "url": "https://hub.hubzilla.de/channel/erua",
+        "display_name": null,
+        "followers_count": 0,
+        "following_count": 0,
+        "statuses_count": 0,
+        "locked": false,
+        "header": "",
+        "note": "",
+        "emojis": [],
+        "created_at": "2008-10-22T00:00:00Z",
+        "source": {
+          "privacy": "public",
+          "note": ""
+        }
+      },
+      "in_reply_to_id": "3091105-5",
+      "spoiler_text": "",
+      "visibility": "public",
+      "content": "<p><span class=\"h-card\"><a class=\"mention u-url\" href=\"https://friends.deko.cloud/profile/shuro\" data-user-uri=\"1\">@Anonymous</a></span>, @<a href=\"https://friends.deko.cloud/profile/shuro\" rel=\"nofollow\">Шуро</a> Ну ... тут скорее у @<a href=\"https://mastodon.social/@test\" rel=\"nofollow\">test</a> пост про «клиповое сознание» — когда человек руководствуется набором лозунгов как правил и руководств к действию. Пытаясь вести в повседневности лишь рассудочную жизнедеятельность, а не сознательную.  <br/>\nТипа, что так якобы проще, и как бы меньше паришься из-за всякой фигни. Принцип в плане мотива тот же, как и у большинства когнитивных искажений, которые работают как фильтры восприятия реальности.  <br/>\n  <br/>\nКачественные вещи могут строить дёшево, в том случае, когда упала оборачиваемость — становится невыгодно хранить на складе одни товары, а проще слить в продажу как можно быстрее. Чтобы освободить драгоценное пространство операционных складов под такую продукцию, у которой оборачиваемость выше. Т.е. это стандартный риск не угадать с ёмкостью ниши и потери на таких остатках складских изначально застрахованы — включены в стоимость (отпускную или розничную).  <br/>\n  <br/>\nДругой пример, когда бренду охота один и тот же товар под разными личинами продавать в нескольких ценовых сегментах. Вместо того, чтобы производить два разны вида продукции, делают один тип, но пуская в продажу искусственно душат мощность или урезают функциональность.  <br/>\n  <br/>\nИ ещё парочку примеров можно привести, тоже как контраргумент против того, чтобы жить руководствуясь лозунгами и кричалками.</p>",
+      "reblogs_count": 0,
+      "favourites_count": 0,
+      "media_attachments": [],
+      "mentions": [
+        {
+          "id": "686",
+          "username": "test",
+          "url": "https://juick.com/test/",
+          "acct": "test"
+        },
+        {
+          "id": "686",
+          "username": "shuro",
+          "url": "https://friends.deko.cloud/profile/shuro",
+          "acct": "shuro"
+        }
+      ],
+      "emojis": [],
+      "tags": []
+    },
+    {
+      "id": "3091105-8",
+      "url": "https://juick.com/m/3091105#8",
+      "uri": "https://juick.com/m/3091105#8",
+      "created_at": "2026-07-20T00:52:29.062838Z",
+      "account": {
+        "id": "31136",
+        "username": "cypa",
+        "acct": "cypa",
+        "url": "https://juick.com/cypa/",
+        "display_name": null,
+        "followers_count": 42,
+        "following_count": 6,
+        "statuses_count": 1600,
+        "avatar": "https://juick.com/av-96-c98b5dfbf6ba42756529fb9383b56f53.png",
+        "avatar_static": "https://juick.com/av-96-c98b5dfbf6ba42756529fb9383b56f53.png",
+        "locked": false,
+        "header": "",
+        "note": "",
+        "emojis": [],
+        "created_at": "2008-10-22T00:00:00Z",
+        "source": {
+          "privacy": "public",
+          "note": ""
+        }
+      },
+      "in_reply_to_id": "3091105-0",
+      "in_reply_to_account_id": "5",
+      "spoiler_text": "",
+      "visibility": "public",
+      "content": "<p><span class=\"h-card\"><a class=\"u-url\" href=\"https://juick.com/archive/\">@archive</a></span>, да, пора бытовую жизнь тоже на научные рельсы ставить, и тем более политическую жизнь</p>",
+      "reblogs_count": 0,
+      "favourites_count": 0,
+      "media_attachments": [],
+      "mentions": [
+        {
+          "id": "686",
+          "username": "test",
+          "url": "https://juick.com/test/",
+          "acct": "test"
+        }
+      ],
+      "emojis": [],
+      "tags": []
+    },
+    {
+      "id": "3091105-9",
+      "url": "https://juick.com/m/3091105#9",
+      "uri": "https://juick.com/m/3091105#9",
+      "created_at": "2026-07-20T09:57:59.654084Z",
+      "account": {
+        "id": "25482",
+        "username": "rkit",
+        "acct": "rkit",
+        "url": "https://juick.com/rkit/",
+        "display_name": null,
+        "followers_count": 17,
+        "following_count": 1,
+        "statuses_count": 116,
+        "avatar": "https://juick.com/av-96-c98b5dfbf6ba42756529fb9383b56f53.png",
+        "avatar_static": "https://juick.com/av-96-c98b5dfbf6ba42756529fb9383b56f53.png",
+        "locked": false,
+        "header": "",
+        "note": "",
+        "emojis": [],
+        "created_at": "2008-10-22T00:00:00Z",
+        "source": {
+          "privacy": "public",
+          "note": ""
+        }
+      },
+      "in_reply_to_id": "3091105-0",
+      "in_reply_to_account_id": "5",
+      "spoiler_text": "",
+      "visibility": "public",
+      "content": "<p><span class=\"h-card\"><a class=\"u-url\" href=\"https://juick.com/archive/\">@archive</a></span>,\n<blockquote>И применяю я их в зависимости от того, что мне сейчас выгодней.</blockquote>Все так делают, включая твоих деятелей. В какого коммуниста ни ткни &mdash; у него особняк и три машины. У каждого защитника морали и традиционных ценностей на телефоне гей-порно. Путин на протяжении всего своего срока талдычит о важности борьбы с мигрантской преступностью, а ситуация только хуже и хуже.\r<br/>\nЧеловеком руководят эмоции и желания, а не логика. Логика это инструмент, решающий задачи, поставленные эмоциями. </p>",
+      "reblogs_count": 0,
+      "favourites_count": 0,
+      "media_attachments": [],
+      "mentions": [
+        {
+      "id": "686",
+      "username": "test",
+      "url": "https://juick.com/test/",
+      "acct": "test"
+    }
+      ],
+      "emojis": [],
+      "tags": []
+    },
+    {
+      "id": "3091105-10",
+      "url": "https://juick.com/m/3091105#10",
+      "uri": "https://juick.com/m/3091105#10",
+      "created_at": "2026-07-20T11:51:41.137239Z",
+      "account": {
+        "id": "31136",
+        "username": "cypa",
+        "acct": "cypa",
+        "url": "https://juick.com/cypa/",
+        "display_name": null,
+        "followers_count": 42,
+        "following_count": 6,
+        "statuses_count": 1600,
+        "avatar": "https://juick.com/av-96-c98b5dfbf6ba42756529fb9383b56f53.png",
+        "avatar_static": "https://juick.com/av-96-c98b5dfbf6ba42756529fb9383b56f53.png",
+        "locked": false,
+        "header": "",
+        "note": "",
+        "emojis": [],
+        "created_at": "2008-10-22T00:00:00Z",
+        "source": {
+          "privacy": "public",
+          "note": ""
+        }
+      },
+      "in_reply_to_id": "3091105-9",
+      "in_reply_to_account_id": "25482",
+      "spoiler_text": "",
+      "visibility": "public",
+      "content": "<p><span class=\"h-card\"><a class=\"u-url\" href=\"https://juick.com/rkit/\">@rkit</a></span>, ты путаешь политика с волшебником или божеством, \r<br/>\nот слов политика до реальности очень большое расстояние и куча постредников разной степени испоченности со своими собственными интересами</p>",
+      "reblogs_count": 0,
+      "favourites_count": 0,
+      "media_attachments": [],
+      "mentions": [
+        {
+          "id": "25482",
+          "username": "rkit",
+          "url": "https://juick.com/rkit/",
+          "acct": "rkit"
+        }
+      ],
+      "emojis": [],
+      "tags": []
+    }
+  ]
+}
